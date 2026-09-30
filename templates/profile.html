@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ user.username }} — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Поиск...">
+        </form>
+
+        <div class="user-info">
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="profile-card">
+            {% if user.avatar %}
+                <img src="{{ url_for('static', filename='avatars/' + user.avatar) }}" class="profile-avatar-img" alt="avatar">
+            {% else %}
+                <div class="profile-avatar">{{ user.username[0]|upper }}</div>
+            {% endif %}
+
+            <h2 class="profile-name">{{ user.username }}</h2>
+
+            {% if user.bio %}
+                <p class="profile-bio">{{ user.bio }}</p>
+            {% endif %}
+
+            <div class="profile-details">
+                {% if user.city %}
+                    <span class="profile-detail">📍 {{ user.city }}</span>
+                {% endif %}
+                {% if user.website %}
+                    <a href="{{ user.website }}" target="_blank" class="profile-detail profile-website">
+                        🔗 {{ user.website }}
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="profile-social">
+                <div class="social-stat">
+                    <span class="social-num">{{ posts|length }}</span>
+                    <span class="social-label">постов</span>
+                </div>
+                <div class="social-stat">
+                    <span class="social-num">{{ followers_count }}</span>
+                    <span class="social-label">подписчиков</span>
+                </div>
+                <div class="social-stat">
+                    <span class="social-num">{{ following_count }}</span>
+                    <span class="social-label">подписок</span>
+                </div>
+            </div>
+
+            <p class="profile-meta">На Mystical с {{ user.created_at.strftime('%d.%m.%Y') }}</p>
+
+            {% if user.id == session.user_id %}
+                <div class="profile-actions">
+                    <a href="{{ url_for('edit_profile') }}" class="btn-primary btn-small">✏️ Редактировать</a>
+                </div>
+
+                <form method="POST" action="{{ url_for('upload_avatar') }}" enctype="multipart/form-data" class="avatar-form">
+                    <label for="avatar-input" class="avatar-label">Сменить аватарку</label>
+                    <input type="file" name="avatar" id="avatar-input" accept="image/*" onchange="this.form.submit()">
+                </form>
+            {% else %}
+                <div class="profile-actions">
+                    <form method="POST" action="{{ url_for('toggle_follow', username=user.username) }}">
+                        <input type="hidden" name="next" value="{{ url_for('profile', username=user.username) }}">
+                        {% if is_following(user) %}
+                            <button type="submit" class="btn-secondary btn-small">✓ Отписаться</button>
+                        {% else %}
+                            <button type="submit" class="btn-primary btn-small">+ Подписаться</button>
+                        {% endif %}
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <h3 class="section-title">Посты {{ user.username }}</h3>
+
+        <div class="posts">
+            {% if posts %}
+                {% for post in posts %}
+                    {% with next_url=url_for('profile', username=user.username) %}
+                        {% include '_post.html' %}
+                    {% endwith %}
+                {% endfor %}
+            {% else %}
+                <p class="empty">У этого юзера пока нет постов.</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

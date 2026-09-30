@@ -1,0 +1,53 @@
+{# Партиал одного поста. Ожидает: post, next_url #}
+<div class="post">
+    <div class="post-header">
+        <a href="{{ url_for('profile', username=post.author.username) }}" class="post-author">
+            {{ post.author.username }}
+        </a>
+        <span class="post-date">{{ post.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+    </div>
+    <div class="post-content">{{ post.content|linkify }}</div>
+
+    <div class="post-actions">
+        <form method="POST" action="{{ url_for('toggle_like', post_id=post.id) }}" class="like-form">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <button type="submit" class="like-btn {% if has_liked(post) %}liked{% endif %}">
+                {% if has_liked(post) %}❤️{% else %}🤍{% endif %}
+                <span class="like-count">{{ post.likes|length }}</span>
+            </button>
+        </form>
+        <span class="comment-count">💬 {{ post.comments|length }}</span>
+
+        {% if post.user_id == session.user_id %}
+            <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}" class="delete-form"
+                  onsubmit="return confirm('Удалить пост?');">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <button type="submit" class="delete-btn" title="Удалить пост">🗑</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="comments">
+        {% for comment in post.comments %}
+            <div class="comment">
+                <a href="{{ url_for('profile', username=comment.author.username) }}" class="comment-author">
+                    {{ comment.author.username }}
+                </a>
+                <span class="comment-text">{{ comment.content }}</span>
+                <span class="comment-date">{{ comment.created_at.strftime('%d.%m %H:%M') }}</span>
+                {% if comment.user_id == session.user_id %}
+                    <form method="POST" action="{{ url_for('delete_comment', comment_id=comment.id) }}" class="comment-delete-form">
+                        <input type="hidden" name="next" value="{{ next_url }}">
+                        <button type="submit" class="comment-delete-btn" title="Удалить комментарий">×</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}" class="comment-form">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <input type="text" name="content" placeholder="Написать комментарий..." required>
+            <button type="submit">→</button>
+        </form>
+    </div>
+</div>

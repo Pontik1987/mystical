@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>#{{ tag }} — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Поиск...">
+        </form>
+
+        <div class="user-info">
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="tag-header">
+            <h2 class="tag-title">#{{ tag }}</h2>
+            <p class="tag-count">Найдено постов: {{ posts|length }}</p>
+        </div>
+
+        <div class="posts">
+            {% if posts %}
+                {% for post in posts %}
+                    {% with next_url=url_for('tag_page', tag=tag) %}
+                        {% include '_post.html' %}
+                    {% endwith %}
+                {% endfor %}
+            {% else %}
+                <p class="empty">Постов с этим тегом нет.</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

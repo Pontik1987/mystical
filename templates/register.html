@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1 class="logo">Mystical</h1>
+            <h2>Регистрация</h2>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for msg in messages %}
+                        <div class="flash">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('register') }}">
+                <input type="text" name="username" placeholder="Имя пользователя" required autofocus>
+                <input type="password" name="password" placeholder="Пароль" required>
+                <button type="submit">Создать аккаунт</button>
+            </form>
+
+            <p class="switch-link">
+                Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

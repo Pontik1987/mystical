@@ -1,0 +1,81 @@
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+
+db = SQLAlchemy()
+
+
+class Follow(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    following_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('follower_id', 'following_id', name='unique_follow'),)
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    avatar = db.Column(db.String(200), nullable=True)
+    bio = db.Column(db.String(300), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    website = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    posts = db.relationship('Post', backref='author', lazy=True)
+    likes = db.relationship('Like', backref='user', lazy=True)
+    comments = db.relationship('Comment', backref='author', lazy=True)
+
+    # Подписки: кого я читаю
+    following = db.relationship(
+        'Follow',
+        foreign_keys='Follow.follower_id',
+        backref='follower',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
+    # Подписчики: кто читает меня
+    followers = db.relationship(
+        'Follow',
+        foreign_keys='Follow.following_id',
+        backref='following',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    likes = db.relationship('Like', backref='post', lazy=True, cascade='all, delete-orphan')
+    comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan',
+                               order_by='Comment.created_at')
+
+
+class Like(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='unique_user_post_like'),)
+
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)

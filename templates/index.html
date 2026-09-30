@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Лента — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Поиск...">
+        </form>
+
+        <div class="user-info">
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                {% if current_user.avatar %}
+                    <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="mini-avatar" alt="">
+                {% endif %}
+                Привет, {{ session.username }}
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="feed-tabs">
+            <a href="{{ url_for('index', tab='all') }}" class="tab {% if tab == 'all' %}active{% endif %}">
+                🌍 Все
+            </a>
+            <a href="{{ url_for('index', tab='following') }}" class="tab {% if tab == 'following' %}active{% endif %}">
+                👥 Подписки
+            </a>
+        </div>
+
+        <div class="post-form">
+            <form method="POST" action="{{ url_for('create_post') }}">
+                <textarea name="content" placeholder="Что нового? Используй #хэштеги!" required></textarea>
+                <button type="submit">Опубликовать</button>
+            </form>
+        </div>
+
+        <div class="posts">
+            {% if posts %}
+                {% for post in posts %}
+                    {% with next_url=url_for('index', tab=tab) %}
+                        {% include '_post.html' %}
+                    {% endwith %}
+                {% endfor %}
+            {% else %}
+                {% if tab == 'following' %}
+                    <p class="empty">Пока пусто. Подпишись на кого-нибудь — и здесь появятся их посты.</p>
+                {% else %}
+                    <p class="empty">Пока постов нет. Будь первым!</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>
