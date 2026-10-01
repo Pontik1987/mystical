@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
 import re
@@ -79,9 +79,15 @@ def inject_user():
             return 0
         return Message.query.filter_by(recipient_id=current_user.id, is_read=False).count()
 
+
+    def has_reposted(post):
+        if not current_user:
+            return False
+        return Repost.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None
+
     return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
                 has_bookmarked=has_bookmarked, unread_count=unread_count,
-                unread_messages_count=unread_messages_count)
+                unread_messages_count=unread_messages_count, has_reposted=has_reposted)
 
 
 @app.route('/')
@@ -566,6 +572,38 @@ def api_chat(username):
             for m in messages_list
         ]
     }
+
+@app.route('/repost/<int:post_id>', methods=['POST'])
+def toggle_repost(post_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    post = Post.query.get_or_404(post_id)
+
+    if post.user_id == session['user_id']:
+        flash('Нельзя репостить свой пост')
+        return redirect(request.form.get('next') or url_for('index'))
+
+    existing = Repost.query.filter_by(user_id=session['user_id'], post_id=post.id).first()
+
+    if existing:
+        db.session.delete(existing)
+    else:
+        db.session.add(Repost(user_id=session['user_id'], post_id=post.id))
+        if post.user_id != session['user_id']:
+            notif = Notification(
+                user_id=post.user_id,
+                actor_id=session['user_id'],
+                type='repost',
+                post_id=post.id
+            )
+            db.session.add(notif)
+
+    db.session.commit()
+
+    next_url = request.form.get('next') or url_for('index')
+    return redirect(next_url)
+
 
 @app.route('/post/<int:post_id>')
 def single_post(post_id):

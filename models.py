@@ -49,6 +49,18 @@ class Message(db.Model):
     recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
 
 
+class Repost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='unique_user_post_repost'),)
+
+    user = db.relationship('User', backref='user_reposts', foreign_keys=[user_id])
+    post = db.relationship('Post', backref='post_reposts', foreign_keys=[post_id])
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)

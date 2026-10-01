@@ -1320,3 +1320,54 @@ body.dark .chat-form input::placeholder { color: #888; }
 body.dark .comment-avatar {
     background: #a78bfa;
 }
+
+/* --- Reposts --- */
+.repost-form { display: inline; }
+
+.repost-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 20px;
+    opacity: 0.5;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.repost-btn:hover {
+    background: #dcfce7;
+    opacity: 1;
+}
+
+.repost-btn.active {
+    opacity: 1;
+    background: #dcfce7;
+}
+
+.repost-count {
+    font-size: 14px;
+    color: #666;
+    margin-left: 8px;
+}
+
+body.dark .repost-count {
+    color: #b0b3b8;
+}
+
+/* --- Share button --- */
+.share-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 20px;
+    opacity: 0.5;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.share-btn:hover {
+    background: #e0e7ff;
+    opacity: 1;
+}

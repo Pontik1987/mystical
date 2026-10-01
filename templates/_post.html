@@ -25,6 +25,15 @@
             </button>
         </form>
 
+        {% if post.user_id != session.user_id %}
+        <form method="POST" action="{{ url_for('toggle_repost', post_id=post.id) }}" class="repost-form">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <button type="submit" class="repost-btn {% if has_reposted(post) %}active{% endif %}" title="Репост">🔄</button>
+        </form>
+        {% endif %}
+
+        <span class="repost-count">🔄 {{ post.post_reposts|length }}</span>
+
         <button type="button" class="share-btn" data-url="{{ url_for('single_post', post_id=post.id, _external=True) }}" title="Поделиться">🔗</button>
 
         {% if post.user_id == session.user_id %}
