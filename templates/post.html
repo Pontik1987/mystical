@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Пост — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Поиск...">
+        </form>
+
+        <div class="user-info">
+            <a href="{{ url_for('bookmarks') }}" class="user-link" title="Избранное">🔖</a>
+            <a href="{{ url_for('notifications') }}" class="user-link notif-link" title="Уведомления">
+                🔔{% if unread_count() > 0 %}<span class="notif-badge">{{ unread_count() }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('messages') }}" class="user-link notif-link" title="Сообщения">
+                ✉️{% if unread_messages_count() > 0 %}<span class="notif-badge">{{ unread_messages_count() }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <a href="{{ url_for('index') }}" class="chat-back" style="display:inline-block;margin-bottom:16px;">← В ленту</a>
+
+        <div class="posts">
+            {% with next_url=url_for('single_post', post_id=post.id) %}
+                {% include '_post.html' %}
+            {% endwith %}
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

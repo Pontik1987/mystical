@@ -25,6 +25,8 @@
             </button>
         </form>
 
+        <button type="button" class="share-btn" data-url="{{ url_for('single_post', post_id=post.id, _external=True) }}" title="Поделиться">🔗</button>
+
         {% if post.user_id == session.user_id %}
             <a href="{{ url_for('edit_post', post_id=post.id) }}" class="edit-btn" title="Редактировать">✏️</a>
             <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}" class="delete-form"
@@ -59,3 +61,29 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.share-btn');
+    if (!btn) return;
+
+    var url = btn.getAttribute('data-url');
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+            var original = btn.textContent;
+            btn.textContent = '✅';
+            setTimeout(function() { btn.textContent = original; }, 1500);
+        });
+    } else {
+        var tmp = document.createElement('textarea');
+        tmp.value = url;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+        var original = btn.textContent;
+        btn.textContent = '✅';
+        setTimeout(function() { btn.textContent = original; }, 1500);
+    }
+});
+</script>

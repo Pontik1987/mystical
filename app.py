@@ -530,6 +530,15 @@ def api_chat(username):
         ]
     }
 
+@app.route('/post/<int:post_id>')
+def single_post(post_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html', post=post)
+
+
 
 
 @app.route('/edit_post/<int:post_id>', methods=['GET', 'POST'])
