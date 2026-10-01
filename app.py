@@ -7,10 +7,13 @@ import re
 import os
 
 app = Flask(__name__)
-app.secret_key = 'change-me-to-random-secret-key'
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-prod')
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'mysocial.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    'sqlite:///' + os.path.join(basedir, 'mysocial.db')
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 AVATAR_FOLDER = os.path.join(basedir, 'static', 'avatars')
@@ -366,4 +369,5 @@ with app.app_context():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
