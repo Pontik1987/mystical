@@ -777,3 +777,331 @@ body {
     font-size: 13px;
     color: #999;
 }
+
+/* --- Edit button --- */
+.edit-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 20px;
+    text-decoration: none;
+    opacity: 0.5;
+    transition: background 0.2s, opacity 0.2s;
+    display: inline-block;
+}
+
+.edit-btn:hover {
+    background: #fef3c7;
+    opacity: 1;
+}
+
+/* ============================================
+   🌙 ТЁМНАЯ ТЕМА
+   ============================================ */
+
+/* Переключатель темы в шапке */
+.theme-toggle {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 20px;
+    transition: background 0.2s;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.theme-toggle:hover {
+    background: rgba(124, 58, 237, 0.1);
+}
+
+/* Тёмная тема */
+body.dark {
+    background: #18191a;
+    color: #e4e6eb;
+}
+
+body.dark .topbar {
+    background: #242526;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark .topbar .logo {
+    color: #a78bfa;
+}
+
+body.dark .user-info {
+    color: #e4e6eb;
+}
+
+body.dark .user-link {
+    color: #a78bfa;
+}
+
+body.dark .btn-logout {
+    color: #a78bfa;
+}
+
+body.dark .btn-logout:hover {
+    background: rgba(167, 139, 250, 0.15);
+}
+
+body.dark .search-input {
+    background: #3a3b3c;
+    border-color: #3a3b3c;
+    color: #e4e6eb;
+}
+
+body.dark .search-input:focus {
+    background: #242526;
+    border-color: #a78bfa;
+}
+
+body.dark .search-input::placeholder {
+    color: #888;
+}
+
+body.dark .feed-tabs {
+    background: #242526;
+}
+
+body.dark .tab {
+    color: #b0b3b8;
+}
+
+body.dark .tab:hover {
+    background: #3a3b3c;
+}
+
+body.dark .tab.active {
+    background: #7c3aed;
+    color: white;
+}
+
+body.dark .post-form {
+    background: #242526;
+}
+
+body.dark .post-form textarea {
+    background: #3a3b3c;
+    border-color: #3a3b3c;
+    color: #e4e6eb;
+}
+
+body.dark .post-form textarea::placeholder {
+    color: #888;
+}
+
+body.dark .post {
+    background: #242526;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark .post-header strong,
+body.dark .post-author {
+    color: #a78bfa;
+}
+
+body.dark .post-date {
+    color: #888;
+}
+
+body.dark .post-content {
+    color: #e4e6eb;
+}
+
+body.dark .post-actions {
+    border-top-color: #3a3b3c;
+}
+
+body.dark .like-btn {
+    color: #b0b3b8;
+}
+
+body.dark .like-btn:hover {
+    background: #3a3b3c;
+}
+
+body.dark .comment-count {
+    color: #b0b3b8;
+}
+
+body.dark .comments {
+    border-top-color: #3a3b3c;
+}
+
+body.dark .comment-text {
+    color: #e4e6eb;
+}
+
+body.dark .comment-date {
+    color: #666;
+}
+
+body.dark .comment-form input[type="text"] {
+    background: #3a3b3c;
+    border-color: #3a3b3c;
+    color: #e4e6eb;
+}
+
+body.dark .comment-form input[type="text"]::placeholder {
+    color: #888;
+}
+
+body.dark .profile-card {
+    background: #242526;
+}
+
+body.dark .profile-name {
+    color: #e4e6eb;
+}
+
+body.dark .profile-bio {
+    color: #b0b3b8;
+}
+
+body.dark .profile-meta {
+    color: #888;
+}
+
+body.dark .profile-detail {
+    color: #b0b3b8;
+}
+
+body.dark .profile-website {
+    color: #a78bfa;
+}
+
+body.dark .profile-social {
+    border-top-color: #3a3b3c;
+    border-bottom-color: #3a3b3c;
+}
+
+body.dark .social-num {
+    color: #a78bfa;
+}
+
+body.dark .social-label {
+    color: #888;
+}
+
+body.dark .avatar-label {
+    background: rgba(167, 139, 250, 0.15);
+    color: #a78bfa;
+}
+
+body.dark .avatar-label:hover {
+    background: rgba(167, 139, 250, 0.25);
+}
+
+body.dark .section-title {
+    color: #b0b3b8;
+}
+
+body.dark .edit-card {
+    background: #242526;
+}
+
+body.dark .edit-card h2 {
+    color: #e4e6eb;
+}
+
+body.dark .form-label {
+    color: #b0b3b8;
+}
+
+body.dark .form-input,
+body.dark .form-textarea {
+    background: #3a3b3c;
+    border-color: #3a3b3c;
+    color: #e4e6eb;
+}
+
+body.dark .form-input:focus,
+body.dark .form-textarea:focus {
+    border-color: #a78bfa;
+}
+
+body.dark .form-hint {
+    color: #666;
+}
+
+body.dark .btn-secondary {
+    background: #3a3b3c;
+    color: #e4e6eb !important;
+}
+
+body.dark .btn-secondary:hover {
+    background: #4a4b4c;
+}
+
+body.dark .auth-card {
+    background: #242526;
+}
+
+body.dark .auth-card h2 {
+    color: #e4e6eb;
+}
+
+body.dark .auth-card input {
+    background: #3a3b3c;
+    border-color: #3a3b3c;
+    color: #e4e6eb;
+}
+
+body.dark .auth-card input::placeholder {
+    color: #888;
+}
+
+body.dark .auth-card input:focus {
+    border-color: #a78bfa;
+}
+
+body.dark .switch-link {
+    color: #b0b3b8;
+}
+
+body.dark .switch-link a {
+    color: #a78bfa;
+}
+
+body.dark .tag-header {
+    background: #242526;
+}
+
+body.dark .tag-title {
+    color: #a78bfa;
+}
+
+body.dark .tag-count {
+    color: #888;
+}
+
+body.dark .user-card {
+    background: #242526;
+    color: #e4e6eb;
+}
+
+body.dark .user-card-name {
+    color: #a78bfa;
+}
+
+body.dark .user-card-bio {
+    color: #888;
+}
+
+body.dark .search-title {
+    color: #e4e6eb;
+}
+
+body.dark .empty {
+    color: #888;
+}
+
+body.dark .flash {
+    background: #3a1e1e;
+    color: #fca5a5;
+}

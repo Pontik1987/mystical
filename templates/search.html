@@ -17,6 +17,7 @@
             <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
                 Привет, {{ session.username }}
             </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
             <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
         </div>
     </header>
@@ -83,5 +84,6 @@
             <p class="empty">Введи запрос в строке поиска сверху.</p>
         {% endif %}
     </main>
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
 </body>
 </html>

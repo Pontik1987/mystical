@@ -14,6 +14,15 @@ class Follow(db.Model):
     __table_args__ = (db.UniqueConstraint('follower_id', 'following_id', name='unique_follow'),)
 
 
+class Bookmark(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='unique_user_post_bookmark'),)
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -27,8 +36,8 @@ class User(db.Model):
     posts = db.relationship('Post', backref='author', lazy=True)
     likes = db.relationship('Like', backref='user', lazy=True)
     comments = db.relationship('Comment', backref='author', lazy=True)
+    bookmarks = db.relationship('Bookmark', backref='user', lazy=True, cascade='all, delete-orphan')
 
-    # Подписки: кого я читаю
     following = db.relationship(
         'Follow',
         foreign_keys='Follow.follower_id',
@@ -37,7 +46,6 @@ class User(db.Model):
         cascade='all, delete-orphan'
     )
 
-    # Подписчики: кто читает меня
     followers = db.relationship(
         'Follow',
         foreign_keys='Follow.following_id',
@@ -62,6 +70,7 @@ class Post(db.Model):
     likes = db.relationship('Like', backref='post', lazy=True, cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan',
                                order_by='Comment.created_at')
+    bookmarks = db.relationship('Bookmark', backref='post', lazy=True, cascade='all, delete-orphan')
 
 
 class Like(db.Model):

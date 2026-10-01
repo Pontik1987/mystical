@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Follow, Bookmark
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
 from sqlalchemy import or_
@@ -64,7 +64,12 @@ def inject_user():
             return False
         return Follow.query.filter_by(follower_id=current_user.id, following_id=user.id).first() is not None
 
-    return dict(current_user=current_user, has_liked=has_liked, is_following=is_following)
+    def has_bookmarked(post):
+        if not current_user:
+            return False
+        return Bookmark.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None
+
+    return dict(current_user=current_user, has_liked=has_liked, is_following=is_following, has_bookmarked=has_bookmarked)
 
 
 @app.route('/')
@@ -312,6 +317,59 @@ def delete_post(post_id):
     flash('Пост удалён')
     next_url = request.form.get('next') or url_for('index')
     return redirect(next_url)
+
+@app.route('/bookmark/<int:post_id>', methods=['POST'])
+def toggle_bookmark(post_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    post = Post.query.get_or_404(post_id)
+    existing = Bookmark.query.filter_by(user_id=session['user_id'], post_id=post.id).first()
+
+    if existing:
+        db.session.delete(existing)
+    else:
+        db.session.add(Bookmark(user_id=session['user_id'], post_id=post.id))
+
+    db.session.commit()
+
+    next_url = request.form.get('next') or url_for('index')
+    return redirect(next_url)
+
+
+@app.route('/bookmarks')
+def bookmarks():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    bookmarks_list = Bookmark.query.filter_by(user_id=session['user_id']).order_by(Bookmark.created_at.desc()).all()
+    posts = [b.post for b in bookmarks_list]
+
+    return render_template('bookmarks.html', posts=posts)
+
+
+@app.route('/edit_post/<int:post_id>', methods=['GET', 'POST'])
+def edit_post(post_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    post = Post.query.get_or_404(post_id)
+
+    if post.user_id != session['user_id']:
+        flash('Это не твой пост')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        content = request.form.get('content', '').strip()
+        if content:
+            post.content = content
+            db.session.commit()
+            flash('Пост обновлён')
+        next_url = request.form.get('next') or url_for('index')
+        return redirect(next_url)
+
+    return render_template('edit_post.html', post=post)
+
 
 
 @app.route('/delete_comment/<int:comment_id>', methods=['POST'])

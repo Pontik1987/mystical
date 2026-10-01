@@ -14,12 +14,14 @@
         </form>
 
         <div class="user-info">
+            <a href="{{ url_for('bookmarks') }}" class="user-link" title="Избранное">🔖</a>
             <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
                 {% if current_user.avatar %}
                     <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="mini-avatar" alt="">
                 {% endif %}
                 Привет, {{ session.username }}
             </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
             <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
         </div>
     </header>
@@ -57,5 +59,6 @@
             {% endif %}
         </div>
     </main>
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
 </body>
 </html>

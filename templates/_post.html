@@ -18,7 +18,15 @@
         </form>
         <span class="comment-count">💬 {{ post.comments|length }}</span>
 
+        <form method="POST" action="{{ url_for('toggle_bookmark', post_id=post.id) }}" class="bookmark-form">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <button type="submit" class="bookmark-btn {% if has_bookmarked(post) %}active{% endif %}" title="В избранное">
+                {% if has_bookmarked(post) %}🔖{% else %}📑{% endif %}
+            </button>
+        </form>
+
         {% if post.user_id == session.user_id %}
+            <a href="{{ url_for('edit_post', post_id=post.id) }}" class="edit-btn" title="Редактировать">✏️</a>
             <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}" class="delete-form"
                   onsubmit="return confirm('Удалить пост?');">
                 <input type="hidden" name="next" value="{{ next_url }}">

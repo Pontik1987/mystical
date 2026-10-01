@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Редактировать профиль — Mystical</title>
+    <title>Редактировать пост — Mystical</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -24,7 +24,7 @@
 
     <main class="feed-container">
         <div class="edit-card">
-            <h2>Редактировать профиль</h2>
+            <h2>✏️ Редактировать пост</h2>
 
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
@@ -34,23 +34,13 @@
                 {% endif %}
             {% endwith %}
 
-            <form method="POST" action="{{ url_for('edit_profile') }}">
-                <label class="form-label">О себе</label>
-                <textarea name="bio" class="form-textarea" maxlength="300"
-                          placeholder="Расскажи о себе...">{{ user.bio or '' }}</textarea>
-                <p class="form-hint">Макс 300 символов</p>
-
-                <label class="form-label">Город</label>
-                <input type="text" name="city" class="form-input" maxlength="100"
-                       placeholder="Например: Москва" value="{{ user.city or '' }}">
-
-                <label class="form-label">Сайт / соцсеть</label>
-                <input type="url" name="website" class="form-input" maxlength="200"
-                       placeholder="https://..." value="{{ user.website or '' }}">
+            <form method="POST" action="{{ url_for('edit_post', post_id=post.id) }}">
+                <label class="form-label">Текст поста</label>
+                <textarea name="content" class="form-textarea" required autofocus>{{ post.content }}</textarea>
 
                 <div class="edit-actions">
                     <button type="submit" class="btn-primary">Сохранить</button>
-                    <a href="{{ url_for('profile', username=user.username) }}" class="btn-secondary">Отмена</a>
+                    <a href="{{ url_for('index') }}" class="btn-secondary">Отмена</a>
                 </div>
             </form>
         </div>
