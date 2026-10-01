@@ -151,6 +151,22 @@ def register():
             flash('Заполни все поля')
             return redirect(url_for('register'))
 
+        if len(username) < 3:
+            flash('Имя пользователя — минимум 3 символа')
+            return redirect(url_for('register'))
+
+        if len(username) > 20:
+            flash('Имя пользователя — максимум 20 символов')
+            return redirect(url_for('register'))
+
+        if not re.match(r'^[a-z0-9_]+$', username):
+            flash('Только латиница, цифры и _ (без пробелов и русских букв)')
+            return redirect(url_for('register'))
+
+        if len(password) < 6:
+            flash('Пароль — минимум 6 символов')
+            return redirect(url_for('register'))
+
         if User.query.filter_by(username=username).first():
             flash('Такой юзер уже есть')
             return redirect(url_for('register'))
@@ -196,6 +212,9 @@ def create_post():
         return redirect(url_for('login'))
 
     content = request.form.get('content', '').strip()
+    if len(content) > 500:
+        flash('Пост — максимум 500 символов')
+        return redirect(url_for('index'))
     if content:
         post = Post(content=content, user_id=session['user_id'])
         db.session.add(post)
@@ -360,6 +379,10 @@ def add_comment(post_id):
 
     post = Post.query.get_or_404(post_id)
     content = request.form.get('content', '').strip()
+    if len(content) > 300:
+        flash('Комментарий — максимум 300 символов')
+        next_url = request.form.get('next') or url_for('index')
+        return redirect(next_url)
 
     if content:
         comment = Comment(content=content, user_id=session['user_id'], post_id=post.id)
@@ -522,6 +545,9 @@ def send_message(username):
         return redirect(url_for('messages'))
 
     content = request.form.get('content', '').strip()
+    if len(content) > 1000:
+        flash('Сообщение — максимум 1000 символов')
+        return redirect(url_for('chat', username=other.username))
     if content:
         msg = Message(
             sender_id=session['user_id'],
