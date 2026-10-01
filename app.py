@@ -611,6 +611,11 @@ def single_post(post_id):
         return redirect(url_for('login'))
 
     post = Post.query.get_or_404(post_id)
+
+    # Увеличиваем счётчик просмотров
+    post.views = (post.views or 0) + 1
+    db.session.commit()
+
     return render_template('post.html', post=post)
 
 

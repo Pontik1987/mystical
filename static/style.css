@@ -1371,3 +1371,14 @@ body.dark .repost-count {
     background: #e0e7ff;
     opacity: 1;
 }
+
+/* --- View count --- */
+.view-count {
+    font-size: 14px;
+    color: #666;
+    margin-left: 8px;
+}
+
+body.dark .view-count {
+    color: #b0b3b8;
+}

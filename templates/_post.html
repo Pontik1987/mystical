@@ -17,6 +17,7 @@
             </button>
         </form>
         <span class="comment-count">💬 {{ post.comments|length }}</span>
+        <span class="view-count">👁 {{ post.views or 0 }}</span>
 
         <form method="POST" action="{{ url_for('toggle_bookmark', post_id=post.id) }}" class="bookmark-form">
             <input type="hidden" name="next" value="{{ next_url }}">
