@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Follow, Bookmark
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
-from sqlalchemy import or_
 import re
 import os
+from sqlalchemy import or_, and_
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-prod')
@@ -69,7 +69,19 @@ def inject_user():
             return False
         return Bookmark.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None
 
-    return dict(current_user=current_user, has_liked=has_liked, is_following=is_following, has_bookmarked=has_bookmarked)
+    def unread_count():
+        if not current_user:
+            return 0
+        return Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+
+    def unread_messages_count():
+        if not current_user:
+            return 0
+        return Message.query.filter_by(recipient_id=current_user.id, is_read=False).count()
+
+    return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
+                has_bookmarked=has_bookmarked, unread_count=unread_count,
+                unread_messages_count=unread_messages_count)
 
 
 @app.route('/')
@@ -230,6 +242,12 @@ def toggle_follow(username):
         db.session.delete(existing)
     else:
         db.session.add(Follow(follower_id=session['user_id'], following_id=user.id))
+        notif = Notification(
+            user_id=user.id,
+            actor_id=session['user_id'],
+            type='follow'
+        )
+        db.session.add(notif)
 
     db.session.commit()
 
@@ -276,6 +294,15 @@ def toggle_like(post_id):
         db.session.delete(existing)
     else:
         db.session.add(Like(user_id=session['user_id'], post_id=post.id))
+        # Уведомление автору поста (если это не свой пост)
+        if post.user_id != session['user_id']:
+            notif = Notification(
+                user_id=post.user_id,
+                actor_id=session['user_id'],
+                type='like',
+                post_id=post.id
+            )
+            db.session.add(notif)
 
     db.session.commit()
 
@@ -294,6 +321,15 @@ def add_comment(post_id):
     if content:
         comment = Comment(content=content, user_id=session['user_id'], post_id=post.id)
         db.session.add(comment)
+        # Уведомление автору поста
+        if post.user_id != session['user_id']:
+            notif = Notification(
+                user_id=post.user_id,
+                actor_id=session['user_id'],
+                type='comment',
+                post_id=post.id
+            )
+            db.session.add(notif)
         db.session.commit()
 
     next_url = request.form.get('next') or url_for('index')
@@ -346,6 +382,154 @@ def bookmarks():
     posts = [b.post for b in bookmarks_list]
 
     return render_template('bookmarks.html', posts=posts)
+
+@app.route('/notifications')
+def notifications():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    items = Notification.query.filter_by(user_id=session['user_id']).order_by(Notification.created_at.desc()).all()
+
+    # Отмечаем все как прочитанные
+    for item in items:
+        if not item.is_read:
+            item.is_read = True
+    db.session.commit()
+
+    return render_template('notifications.html', notifications=items)
+
+@app.route('/messages')
+def messages():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    me = session['user_id']
+
+    all_msgs = Message.query.filter(
+        or_(Message.sender_id == me, Message.recipient_id == me)
+    ).order_by(Message.created_at.desc()).all()
+
+    seen = {}
+    for msg in all_msgs:
+        other_id = msg.recipient_id if msg.sender_id == me else msg.sender_id
+        if other_id not in seen:
+            seen[other_id] = msg
+
+    dialogs = []
+    for other_id, last_msg in seen.items():
+        other = User.query.get(other_id)
+        if not other:
+            continue
+        unread = Message.query.filter_by(
+            sender_id=other_id, recipient_id=me, is_read=False
+        ).count()
+        dialogs.append({
+            'user': other,
+            'last_message': last_msg,
+            'unread': unread
+        })
+
+    dialogs.sort(key=lambda d: d['last_message'].created_at, reverse=True)
+
+    return render_template('messages.html', dialogs=dialogs)
+
+
+@app.route('/chat/<username>')
+def chat(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    other = User.query.filter_by(username=username.lower()).first()
+    if not other:
+        flash('Юзер не найден')
+        return redirect(url_for('messages'))
+
+    if other.id == session['user_id']:
+        flash('Нельзя писать самому себе')
+        return redirect(url_for('messages'))
+
+    me = session['user_id']
+
+    messages_list = Message.query.filter(
+        or_(
+            and_(Message.sender_id == me, Message.recipient_id == other.id),
+            and_(Message.sender_id == other.id, Message.recipient_id == me)
+        )
+    ).order_by(Message.created_at.asc()).all()
+
+    for msg in messages_list:
+        if msg.recipient_id == me and not msg.is_read:
+            msg.is_read = True
+    db.session.commit()
+
+    return render_template('chat.html', other=other, messages=messages_list)
+
+
+@app.route('/send_message/<username>', methods=['POST'])
+def send_message(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    other = User.query.filter_by(username=username.lower()).first()
+    if not other:
+        flash('Юзер не найден')
+        return redirect(url_for('messages'))
+
+    if other.id == session['user_id']:
+        return redirect(url_for('messages'))
+
+    content = request.form.get('content', '').strip()
+    if content:
+        msg = Message(
+            sender_id=session['user_id'],
+            recipient_id=other.id,
+            content=content
+        )
+        db.session.add(msg)
+        db.session.commit()
+
+    return redirect(url_for('chat', username=other.username))
+
+
+@app.route('/api/chat/<username>')
+def api_chat(username):
+    if 'user_id' not in session:
+        return {'error': 'unauthorized'}, 401
+
+    other = User.query.filter_by(username=username.lower()).first()
+    if not other:
+        return {'error': 'not found'}, 404
+
+    me = session['user_id']
+
+    messages_list = Message.query.filter(
+        or_(
+            and_(Message.sender_id == me, Message.recipient_id == other.id),
+            and_(Message.sender_id == other.id, Message.recipient_id == me)
+        )
+    ).order_by(Message.created_at.asc()).all()
+
+    changed = False
+    for msg in messages_list:
+        if msg.recipient_id == me and not msg.is_read:
+            msg.is_read = True
+            changed = True
+    if changed:
+        db.session.commit()
+
+    return {
+        'messages': [
+            {
+                'id': m.id,
+                'sender': m.sender.username,
+                'content': m.content,
+                'created_at': m.created_at.strftime('%d.%m %H:%M'),
+                'is_mine': m.sender_id == me
+            }
+            for m in messages_list
+        ]
+    }
+
 
 
 @app.route('/edit_post/<int:post_id>', methods=['GET', 'POST'])

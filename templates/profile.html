@@ -15,6 +15,12 @@
 
         <div class="user-info">
             <a href="{{ url_for('bookmarks') }}" class="user-link" title="Избранное">🔖</a>
+            <a href="{{ url_for('notifications') }}" class="user-link notif-link" title="Уведомления">
+                🔔{% if unread_count() > 0 %}<span class="notif-badge">{{ unread_count() }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('messages') }}" class="user-link notif-link" title="Сообщения">
+                ✉️{% if unread_messages_count() > 0 %}<span class="notif-badge">{{ unread_messages_count() }}</span>{% endif %}
+            </a>
             <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
                 Привет, {{ session.username }}
             </a>
@@ -76,7 +82,7 @@
                 </form>
             {% else %}
                 <div class="profile-actions">
-                    <form method="POST" action="{{ url_for('toggle_follow', username=user.username) }}">
+                    <form method="POST" action="{{ url_for('toggle_follow', username=user.username) }}" style="display:inline;">
                         <input type="hidden" name="next" value="{{ url_for('profile', username=user.username) }}">
                         {% if is_following(user) %}
                             <button type="submit" class="btn-secondary btn-small">✓ Отписаться</button>
@@ -84,6 +90,7 @@
                             <button type="submit" class="btn-primary btn-small">+ Подписаться</button>
                         {% endif %}
                     </form>
+                    <a href="{{ url_for('chat', username=user.username) }}" class="btn-primary btn-small" style="margin-left:8px;">✉️ Написать</a>
                 </div>
             {% endif %}
         </div>

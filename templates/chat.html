@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Чат с {{ other.username }} — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('messages') }}" class="user-link" title="Сообщения">✉️</a>
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+    <main class="chat-container">
+        <div class="chat-header">
+            <a href="{{ url_for('messages') }}" class="chat-back">← Назад</a>
+            <a href="{{ url_for('profile', username=other.username) }}" class="chat-with">
+                {{ other.username }}
+            </a>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            {% for m in messages %}
+                <div class="chat-bubble {% if m.sender_id == session.user_id %}mine{% else %}theirs{% endif %}">
+                    <div class="chat-text">{{ m.content }}</div>
+                    <div class="chat-time">{{ m.created_at.strftime('%d.%m %H:%M') }}</div>
+                </div>
+            {% endfor %}
+        </div>
+        <form method="POST" action="{{ url_for('send_message', username=other.username) }}" class="chat-form">
+            <input type="text" name="content" placeholder="Написать сообщение..." required autofocus autocomplete="off">
+            <button type="submit">→</button>
+        </form>
+    </main>
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

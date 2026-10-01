@@ -15,6 +15,12 @@
 
         <div class="user-info">
             <a href="{{ url_for('bookmarks') }}" class="user-link" title="Избранное">🔖</a>
+            <a href="{{ url_for('notifications') }}" class="user-link notif-link" title="Уведомления">
+                🔔{% if unread_count() > 0 %}<span class="notif-badge">{{ unread_count() }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('messages') }}" class="user-link notif-link" title="Сообщения">
+                ✉️{% if unread_messages_count() > 0 %}<span class="notif-badge">{{ unread_messages_count() }}</span>{% endif %}
+            </a>
             <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
                 {% if current_user.avatar %}
                     <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="mini-avatar" alt="">

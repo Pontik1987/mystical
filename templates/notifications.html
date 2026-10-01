@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Уведомления — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Поиск...">
+        </form>
+
+        <div class="user-info">
+            <a href="{{ url_for('bookmarks') }}" class="user-link" title="Избранное">🔖</a>
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="tag-header">
+            <h2 class="tag-title">🔔 Уведомления</h2>
+            <p class="tag-count">Всего: {{ notifications|length }}</p>
+        </div>
+
+        <div class="notifications-list">
+            {% if notifications %}
+                {% for n in notifications %}
+                    <div class="notification-item">
+                        {% if n.type == 'like' %}
+                            <span class="notif-icon">❤️</span>
+                            <div class="notif-body">
+                                <a href="{{ url_for('profile', username=n.actor.username) }}" class="notif-actor">
+                                    {{ n.actor.username }}
+                                </a>
+                                <span class="notif-text">лайкнул твой пост</span>
+                                {% if n.post %}
+                                    <div class="notif-preview">{{ n.post.content[:80] }}{% if n.post.content|length > 80 %}...{% endif %}</div>
+                                {% endif %}
+                            </div>
+                        {% elif n.type == 'comment' %}
+                            <span class="notif-icon">💬</span>
+                            <div class="notif-body">
+                                <a href="{{ url_for('profile', username=n.actor.username) }}" class="notif-actor">
+                                    {{ n.actor.username }}
+                                </a>
+                                <span class="notif-text">прокомментировал твой пост</span>
+                                {% if n.post %}
+                                    <div class="notif-preview">{{ n.post.content[:80] }}{% if n.post.content|length > 80 %}...{% endif %}</div>
+                                {% endif %}
+                            </div>
+                        {% elif n.type == 'follow' %}
+                            <span class="notif-icon">👤</span>
+                            <div class="notif-body">
+                                <a href="{{ url_for('profile', username=n.actor.username) }}" class="notif-actor">
+                                    {{ n.actor.username }}
+                                </a>
+                                <span class="notif-text">подписался на тебя</span>
+                            </div>
+                        {% endif %}
+                        <span class="notif-date">{{ n.created_at.strftime('%d.%m %H:%M') }}</span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Пока уведомлений нет.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>
