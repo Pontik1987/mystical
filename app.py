@@ -281,6 +281,43 @@ def edit_profile():
 
     return render_template('edit_profile.html', user=user)
 
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.get(session['user_id'])
+
+    if request.method == 'POST':
+        current = request.form.get('current', '')
+        new_pass = request.form.get('new_password', '')
+        confirm = request.form.get('confirm', '')
+
+        if not user.check_password(current):
+            flash('Текущий пароль неверный')
+            return redirect(url_for('change_password'))
+
+        if len(new_pass) < 6:
+            flash('Новый пароль должен быть минимум 6 символов')
+            return redirect(url_for('change_password'))
+
+        if new_pass != confirm:
+            flash('Пароли не совпадают')
+            return redirect(url_for('change_password'))
+
+        if current == new_pass:
+            flash('Новый пароль должен отличаться от текущего')
+            return redirect(url_for('change_password'))
+
+        user.set_password(new_pass)
+        db.session.commit()
+
+        flash('Пароль успешно изменён!')
+        return redirect(url_for('profile', username=user.username))
+
+    return render_template('change_password.html', user=user)
+
+
 
 @app.route('/like/<int:post_id>', methods=['POST'])
 def toggle_like(post_id):

@@ -74,6 +74,7 @@
             {% if user.id == session.user_id %}
                 <div class="profile-actions">
                     <a href="{{ url_for('edit_profile') }}" class="btn-primary btn-small">✏️ Редактировать</a>
+                    <a href="{{ url_for('change_password') }}" class="btn-secondary btn-small" style="margin-left:8px;">🔑 Сменить пароль</a>
                 </div>
 
                 <form method="POST" action="{{ url_for('upload_avatar') }}" enctype="multipart/form-data" class="avatar-form">
