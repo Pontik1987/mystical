@@ -40,6 +40,11 @@
     <div class="comments">
         {% for comment in post.comments %}
             <div class="comment">
+                {% if comment.author.avatar %}
+                    <img src="{{ url_for('static', filename='avatars/' + comment.author.avatar) }}" class="comment-avatar-img" alt="">
+                {% else %}
+                    <div class="comment-avatar">{{ comment.author.username[0]|upper }}</div>
+                {% endif %}
                 <a href="{{ url_for('profile', username=comment.author.username) }}" class="comment-author">
                     {{ comment.author.username }}
                 </a>

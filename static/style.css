@@ -1297,3 +1297,26 @@ body.dark .chat-form { background: #242526; }
 body.dark .chat-bubble.theirs { background: #3a3b3c; color: #e4e6eb; }
 body.dark .chat-form input { background: #3a3b3c; border-color: #3a3b3c; color: #e4e6eb; }
 body.dark .chat-form input::placeholder { color: #888; }
+
+/* --- Comment avatars --- */
+.comment-avatar,
+.comment-avatar-img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-right: 6px;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+body.dark .comment-avatar {
+    background: #a78bfa;
+}
