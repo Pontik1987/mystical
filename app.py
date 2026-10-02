@@ -356,6 +356,72 @@ def profile(username):
     )
 
 
+@app.route('/user/<username>/stats')
+def user_stats(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.filter_by(username=username.lower()).first()
+    if not user:
+        flash('Юзер не найден')
+        return redirect(url_for('index'))
+
+    # Все посты юзера
+    posts = Post.query.filter_by(user_id=user.id).all()
+
+    # Общая статистика
+    total_posts = len(posts)
+    total_likes = sum(len(p.likes) for p in posts)
+    total_comments = sum(len(p.comments) for p in posts)
+    total_reposts = sum(len(p.post_reposts) for p in posts)
+    total_views = sum(p.views or 0 for p in posts)
+
+    # Топ-3 по лайкам
+    top_liked = sorted(posts, key=lambda p: len(p.likes), reverse=True)[:3]
+
+    # Топ-3 по комментариям
+    top_commented = sorted(posts, key=lambda p: len(p.comments), reverse=True)[:3]
+
+    # Топ-3 по просмотрам
+    top_viewed = sorted(posts, key=lambda p: (p.views or 0), reverse=True)[:3]
+
+    # Социалка
+    followers_count = Follow.query.filter_by(following_id=user.id).count()
+    following_count = Follow.query.filter_by(follower_id=user.id).count()
+
+    # Сообщения
+    total_messages = Message.query.filter_by(sender_id=user.id).count()
+
+    # Реакции по типам
+    reactions = {
+        'like': 0,
+        'class': 0,
+        'funny': 0,
+        'wow': 0
+    }
+    for post in posts:
+        for like in post.likes:
+            if like.reaction in reactions:
+                reactions[like.reaction] += 1
+
+    return render_template(
+        'stats.html',
+        user=user,
+        total_posts=total_posts,
+        total_likes=total_likes,
+        total_comments=total_comments,
+        total_reposts=total_reposts,
+        total_views=total_views,
+        top_liked=top_liked,
+        top_commented=top_commented,
+        top_viewed=top_viewed,
+        followers_count=followers_count,
+        following_count=following_count,
+        total_messages=total_messages,
+        reactions=reactions
+    )
+
+
 @app.route('/user/<username>/followers')
 def followers_list(username):
     if 'user_id' not in session:

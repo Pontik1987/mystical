@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Статистика {{ user.username }} — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Поиск...">
+        </form>
+
+        <div class="user-info">
+            <a href="{{ url_for('bookmarks') }}" class="user-link" title="Избранное">🔖</a>
+            <a href="{{ url_for('notifications') }}" class="user-link notif-link" title="Уведомления">
+                🔔{% if unread_count() > 0 %}<span class="notif-badge">{{ unread_count() }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('messages') }}" class="user-link notif-link" title="Сообщения">
+                ✉️{% if unread_messages_count() > 0 %}<span class="notif-badge">{{ unread_messages_count() }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <a href="{{ url_for('profile', username=user.username) }}" class="chat-back" style="display:inline-block;margin-bottom:16px;">← В профиль</a>
+
+        <div class="tag-header">
+            <h2 class="tag-title">📊 Статистика {{ user.username }}</h2>
+        </div>
+
+        <!-- Общие цифры -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📝</div>
+                <div class="stat-value">{{ total_posts }}</div>
+                <div class="stat-label">постов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">❤️</div>
+                <div class="stat-value">{{ total_likes }}</div>
+                <div class="stat-label">лайков</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-value">{{ total_comments }}</div>
+                <div class="stat-label">комментов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-value">{{ total_reposts }}</div>
+                <div class="stat-label">репостов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👁</div>
+                <div class="stat-value">{{ total_views }}</div>
+                <div class="stat-label">просмотров</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✉️</div>
+                <div class="stat-value">{{ total_messages }}</div>
+                <div class="stat-label">сообщений</div>
+            </div>
+        </div>
+
+        <!-- Социалка -->
+        <h3 class="section-title" style="margin-top:24px;">👥 Социалка</h3>
+        <div class="stats-grid">
+            <a href="{{ url_for('followers_list', username=user.username) }}" class="stat-card stat-link">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">{{ followers_count }}</div>
+                <div class="stat-label">подписчиков</div>
+            </a>
+            <a href="{{ url_for('following_list', username=user.username) }}" class="stat-card stat-link">
+                <div class="stat-icon">➡️</div>
+                <div class="stat-value">{{ following_count }}</div>
+                <div class="stat-label">подписок</div>
+            </a>
+        </div>
+
+        <!-- Реакции -->
+        <h3 class="section-title" style="margin-top:24px;">🎨 Реакции на посты</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">❤️</div>
+                <div class="stat-value">{{ reactions.like }}</div>
+                <div class="stat-label">Нравится</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👍</div>
+                <div class="stat-value">{{ reactions.class }}</div>
+                <div class="stat-label">Класс</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">😂</div>
+                <div class="stat-value">{{ reactions.funny }}</div>
+                <div class="stat-label">Смешно</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">😮</div>
+                <div class="stat-value">{{ reactions.wow }}</div>
+                <div class="stat-label">Вау</div>
+            </div>
+        </div>
+
+        <!-- Топ постов -->
+        {% if top_liked %}
+            <h3 class="section-title" style="margin-top:24px;">🔥 Топ постов по лайкам</h3>
+            {% for post in top_liked %}
+                {% if post.likes %}
+                    <div class="top-post">
+                        <div class="top-post-content">{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</div>
+                        <div class="top-post-stats">
+                            ❤️ {{ post.likes|length }} · 💬 {{ post.comments|length }} · 👁 {{ post.views or 0 }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if top_commented %}
+            <h3 class="section-title" style="margin-top:24px;">💬 Топ постов по комментариям</h3>
+            {% for post in top_commented %}
+                {% if post.comments %}
+                    <div class="top-post">
+                        <div class="top-post-content">{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</div>
+                        <div class="top-post-stats">
+                            ❤️ {{ post.likes|length }} · 💬 {{ post.comments|length }} · 👁 {{ post.views or 0 }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if top_viewed %}
+            <h3 class="section-title" style="margin-top:24px;">👁 Топ постов по просмотрам</h3>
+            {% for post in top_viewed %}
+                {% if post.views %}
+                    <div class="top-post">
+                        <div class="top-post-content">{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</div>
+                        <div class="top-post-stats">
+                            ❤️ {{ post.likes|length }} · 💬 {{ post.comments|length }} · 👁 {{ post.views or 0 }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if total_posts == 0 %}
+            <p class="empty" style="margin-top:24px;">Пока нет данных — напиши первый пост!</p>
+        {% endif %}
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

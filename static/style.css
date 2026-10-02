@@ -1975,3 +1975,79 @@ body.dark .dialog-row {
 body.dark .pin-chat-btn:hover {
     background: rgba(254, 243, 199, 0.15);
 }
+
+/* --- Stats --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stat-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.stat-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #7c3aed;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.top-post {
+    background: white;
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border-left: 3px solid #7c3aed;
+}
+
+.top-post-content {
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.top-post-stats {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Dark theme */
+body.dark .stat-card,
+body.dark .top-post {
+    background: #242526;
+}
+body.dark .stat-label { color: #b0b3b8; }
+body.dark .top-post-content { color: #e4e6eb; }
+body.dark .top-post-stats { color: #b0b3b8; }
