@@ -69,6 +69,15 @@ def inject_user():
             return False
         return Like.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None
 
+    def my_reaction(post):
+        if not current_user:
+            return None
+        like = Like.query.filter_by(user_id=current_user.id, post_id=post.id).first()
+        return like.reaction if like else None
+
+    def count_reaction(post, reaction):
+        return Like.query.filter_by(post_id=post.id, reaction=reaction).count()
+
     def is_following(user):
         if not current_user or not user:
             return False
@@ -99,7 +108,8 @@ def inject_user():
 
     return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
                 has_bookmarked=has_bookmarked, unread_count=unread_count,
-                unread_messages_count=unread_messages_count, has_reposted=has_reposted)
+                unread_messages_count=unread_messages_count, has_reposted=has_reposted,
+                my_reaction=my_reaction, count_reaction=count_reaction)
 
 
 @app.route('/')
@@ -409,13 +419,21 @@ def toggle_like(post_id):
         return redirect(url_for('login'))
 
     post = Post.query.get_or_404(post_id)
+    reaction = request.form.get('reaction', 'like')
+
     existing = Like.query.filter_by(user_id=session['user_id'], post_id=post.id).first()
 
     if existing:
-        db.session.delete(existing)
+        if existing.reaction == reaction:
+            # Та же реакция — убираем
+            db.session.delete(existing)
+        else:
+            # Другая реакция — меняем
+            existing.reaction = reaction
     else:
-        db.session.add(Like(user_id=session['user_id'], post_id=post.id))
-        # Уведомление автору поста (если это не свой пост)
+        # Новая реакция
+        db.session.add(Like(user_id=session['user_id'], post_id=post.id, reaction=reaction))
+        # Уведомление автору
         if post.user_id != session['user_id']:
             notif = Notification(
                 user_id=post.user_id,
