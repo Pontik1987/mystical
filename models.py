@@ -14,6 +14,18 @@ class Follow(db.Model):
     __table_args__ = (db.UniqueConstraint('follower_id', 'following_id', name='unique_follow'),)
 
 
+class Block(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    blocked_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'blocked_id', name='unique_block'),)
+
+    user = db.relationship('User', foreign_keys=[user_id], backref='blocked_users')
+    blocked = db.relationship('User', foreign_keys=[blocked_id], backref='blocked_by')
+
+
 class Bookmark(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

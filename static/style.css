@@ -1817,3 +1817,6 @@ body.dark .poll-input {
     color: #e4e6eb;
 }
 body.dark .poll-toggle-label { color: #b0b3b8; }
+
+/* --- Blocked --- */
+/* Кнопки уже используют .btn-secondary и .btn-primary */

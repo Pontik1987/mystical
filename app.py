@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
 import re
@@ -106,10 +106,31 @@ def inject_user():
             return False
         return Repost.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None
 
+    def is_blocked(user):
+        if not current_user or not user:
+            return False
+        if current_user.id == user.id:
+            return False
+        # Проверяем обе стороны: я заблокировал или меня
+        return Block.query.filter(
+            db.or_(
+                db.and_(Block.user_id == current_user.id, Block.blocked_id == user.id),
+                db.and_(Block.user_id == user.id, Block.blocked_id == current_user.id)
+            )
+        ).first() is not None
+
+    def blocked_ids():
+        if not current_user:
+            return []
+        my_blocks = [b.blocked_id for b in Block.query.filter_by(user_id=current_user.id).all()]
+        blocked_me = [b.user_id for b in Block.query.filter_by(blocked_id=current_user.id).all()]
+        return list(set(my_blocks + blocked_me))
+
     return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
                 has_bookmarked=has_bookmarked, unread_count=unread_count,
                 unread_messages_count=unread_messages_count, has_reposted=has_reposted,
-                my_reaction=my_reaction, count_reaction=count_reaction)
+                my_reaction=my_reaction, count_reaction=count_reaction,
+                is_blocked=is_blocked, blocked_ids=blocked_ids)
 
 
 @app.route('/')
@@ -120,6 +141,12 @@ def index():
     tab = request.args.get('tab', 'all')
     sort = request.args.get('sort', 'new')
 
+    # Заблокированные (я заблокировал + меня)
+    me = session['user_id']
+    my_blocks = [b.blocked_id for b in Block.query.filter_by(user_id=me).all()]
+    blocked_me = [b.user_id for b in Block.query.filter_by(blocked_id=me).all()]
+    blocked = list(set(my_blocks + blocked_me))
+
     # Базовая выборка
     if tab == 'following':
         following_ids = [f.following_id for f in Follow.query.filter_by(follower_id=session['user_id']).all()]
@@ -127,6 +154,10 @@ def index():
         query = Post.query.filter(Post.user_id.in_(following_ids))
     else:
         query = Post.query
+
+    # Исключаем заблокированных
+    if blocked:
+        query = query.filter(Post.user_id.notin_(blocked))
 
     # Сортировка
     if sort == 'popular':
@@ -783,6 +814,47 @@ def toggle_pin(post_id):
 
     next_url = request.form.get('next') or url_for('profile', username=session['username'])
     return redirect(next_url)
+
+
+@app.route('/block/<username>', methods=['POST'])
+def block_user(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.filter_by(username=username.lower()).first()
+    if not user:
+        flash('Юзер не найден')
+        return redirect(url_for('index'))
+
+    if user.id == session['user_id']:
+        flash('Нельзя заблокировать себя')
+        return redirect(url_for('profile', username=user.username))
+
+    # Если уже заблокирован — разблокируем
+    existing = Block.query.filter_by(user_id=session['user_id'], blocked_id=user.id).first()
+    if existing:
+        db.session.delete(existing)
+    else:
+        db.session.add(Block(user_id=session['user_id'], blocked_id=user.id))
+        # Автоотписка в обе стороны
+        Follow.query.filter_by(follower_id=session['user_id'], following_id=user.id).delete()
+        Follow.query.filter_by(follower_id=user.id, following_id=session['user_id']).delete()
+
+    db.session.commit()
+
+    next_url = request.form.get('next') or url_for('profile', username=user.username)
+    return redirect(next_url)
+
+
+@app.route('/blocked')
+def blocked_list():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    blocks = Block.query.filter_by(user_id=session['user_id']).all()
+    users = [b.blocked for b in blocks]
+
+    return render_template('blocked.html', users=users)
 
 
 @app.route('/repost/<int:post_id>', methods=['POST'])

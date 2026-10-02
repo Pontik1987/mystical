@@ -75,6 +75,7 @@
                 <div class="profile-actions">
                     <a href="{{ url_for('edit_profile') }}" class="btn-primary btn-small">✏️ Редактировать</a>
                     <a href="{{ url_for('change_password') }}" class="btn-secondary btn-small" style="margin-left:8px;">🔑 Сменить пароль</a>
+                    <a href="{{ url_for('blocked_list') }}" class="btn-secondary btn-small" style="margin-left:8px;">🚫 Заблокированные</a>
                 </div>
 
                 <form method="POST" action="{{ url_for('upload_avatar') }}" enctype="multipart/form-data" class="avatar-form">
@@ -92,6 +93,14 @@
                         {% endif %}
                     </form>
                     <a href="{{ url_for('chat', username=user.username) }}" class="btn-primary btn-small" style="margin-left:8px;">✉️ Написать</a>
+                    <form method="POST" action="{{ url_for('block_user', username=user.username) }}" style="display:inline;margin-left:8px;">
+                        <input type="hidden" name="next" value="{{ url_for('profile', username=user.username) }}">
+                        {% if is_blocked(user) %}
+                            <button type="submit" class="btn-secondary btn-small">✅ Разблокировать</button>
+                        {% else %}
+                            <button type="submit" class="btn-secondary btn-small">🚫 Заблокировать</button>
+                        {% endif %}
+                    </form>
                 </div>
             {% endif %}
         </div>
