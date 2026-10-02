@@ -7,3 +7,8 @@ static/avatars/
 *.log
 .env
 .DS_Store
+
+# Пользовательские загрузки (не храним в Git)
+static/files/
+static/videos/
+static/stories/
