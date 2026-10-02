@@ -2695,3 +2695,91 @@ body.dark .pinned-section {
 body.dark .pinned-section .post {
     background: #2a2618;
 }
+
+/* --- Emoji picker --- */
+.emoji-trigger {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.emoji-trigger:hover {
+    background: #f0f0f0;
+}
+
+.emoji-panel {
+    position: absolute;
+    z-index: 9999;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    padding: 12px;
+    display: none;
+    border: 1px solid #e0e0e0;
+}
+
+.emoji-category-title {
+    font-size: 12px;
+    color: #999;
+    font-weight: 600;
+    margin: 8px 4px 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+}
+
+.emoji-item {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s, transform 0.1s;
+    line-height: 1;
+}
+
+.emoji-item:hover {
+    background: #f0f0f0;
+    transform: scale(1.2);
+}
+
+body.dark .emoji-panel {
+    background: #242526;
+    border-color: #3a3b3c;
+}
+body.dark .emoji-trigger:hover {
+    background: #3a3b3c;
+}
+body.dark .emoji-item:hover {
+    background: #3a3b3c;
+}
+body.dark .emoji-category-title {
+    color: #888;
+}
+
+/* --- Textarea wrapper with emoji --- */
+.textarea-wrapper {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.textarea-wrapper textarea {
+    flex: 1;
+}

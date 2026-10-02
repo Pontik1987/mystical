@@ -82,7 +82,10 @@
 
         <div class="post-form">
             <form method="POST" action="{{ url_for('create_post') }}" enctype="multipart/form-data">
-                <textarea name="content" placeholder="Что нового? Используй #хэштеги и @упоминания!" required></textarea>
+                <div class="textarea-wrapper">
+                    <textarea name="content" id="post-content" placeholder="Что нового? Используй #хэштеги и @упоминания!" required></textarea>
+                    <button type="button" class="emoji-trigger" data-target="post-content" title="Эмодзи">😀</button>
+                </div>
 
                 <div class="video-upload">
                     <label class="video-label">
@@ -152,6 +155,7 @@ if (fileInput) {
     });
 }
 </script>
+    <script src="{{ url_for('static', filename='emoji.js') }}"></script>
     <script src="{{ url_for('static', filename='pwa.js') }}"></script>
 </body>
 </html>

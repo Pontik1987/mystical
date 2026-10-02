@@ -33,10 +33,12 @@
             {% endfor %}
         </div>
         <form method="POST" action="{{ url_for('send_message', username=other.username) }}" class="chat-form">
-            <input type="text" name="content" placeholder="Написать сообщение..." required autofocus autocomplete="off">
+            <input type="text" name="content" id="chat-input" placeholder="Написать сообщение..." required autofocus autocomplete="off">
+            <button type="button" class="emoji-trigger" data-target="chat-input" title="Эмодзи">😀</button>
             <button type="submit">→</button>
         </form>
     </main>
+    <script src="{{ url_for('static', filename='emoji.js') }}"></script>
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
 </body>
 </html>

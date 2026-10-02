@@ -36,7 +36,8 @@
 
             <form method="POST" action="{{ url_for('edit_post', post_id=post.id) }}">
                 <label class="form-label">Текст поста</label>
-                <textarea name="content" class="form-textarea" required autofocus>{{ post.content }}</textarea>
+                <textarea name="content" id="edit-post-content" class="form-textarea" required autofocus>{{ post.content }}</textarea>
+                <button type="button" class="emoji-trigger" data-target="edit-post-content" title="Эмодзи" style="margin-top:6px;">😀 Эмодзи</button>
 
                 <div class="edit-actions">
                     <button type="submit" class="btn-primary">Сохранить</button>
@@ -45,6 +46,7 @@
             </form>
         </div>
     </main>
-<script src="{{ url_for('static', filename='theme.js') }}"></script>
+<script src="{{ url_for('static', filename='emoji.js') }}"></script>
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
 </body>
 </html>
