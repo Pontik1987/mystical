@@ -1382,3 +1382,84 @@ body.dark .repost-count {
 body.dark .view-count {
     color: #b0b3b8;
 }
+
+/* --- Users list (followers/following) --- */
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.user-row-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+}
+
+.user-row-avatar,
+.user-row-avatar-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+.user-row-body { min-width: 0; }
+
+.user-row-name {
+    font-weight: 600;
+    color: #7c3aed;
+    margin-bottom: 2px;
+}
+
+.user-row-bio {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-row-action { flex-shrink: 0; }
+
+/* Clickable stats */
+.social-link {
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s;
+    cursor: pointer;
+}
+
+.social-link:hover {
+    transform: scale(1.05);
+}
+
+.social-link:hover .social-num {
+    color: #6d28d9;
+}
+
+/* Dark theme */
+body.dark .user-row { background: #242526; }
+body.dark .user-row-bio { color: #b0b3b8; }

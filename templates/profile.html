@@ -59,14 +59,14 @@
                     <span class="social-num">{{ posts|length }}</span>
                     <span class="social-label">постов</span>
                 </div>
-                <div class="social-stat">
+                <a href="{{ url_for('followers_list', username=user.username) }}" class="social-stat social-link">
                     <span class="social-num">{{ followers_count }}</span>
                     <span class="social-label">подписчиков</span>
-                </div>
-                <div class="social-stat">
+                </a>
+                <a href="{{ url_for('following_list', username=user.username) }}" class="social-stat social-link">
                     <span class="social-num">{{ following_count }}</span>
                     <span class="social-label">подписок</span>
-                </div>
+                </a>
             </div>
 
             <p class="profile-meta">На Mystical с {{ user.created_at.strftime('%d.%m.%Y') }}</p>

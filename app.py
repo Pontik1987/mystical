@@ -247,6 +247,38 @@ def profile(username):
     )
 
 
+@app.route('/user/<username>/followers')
+def followers_list(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.filter_by(username=username.lower()).first()
+    if not user:
+        flash('Юзер не найден')
+        return redirect(url_for('index'))
+
+    follows = Follow.query.filter_by(following_id=user.id).all()
+    users = [f.follower for f in follows]
+
+    return render_template('followers.html', user=user, users=users, title='Подписчики')
+
+
+@app.route('/user/<username>/following')
+def following_list(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.filter_by(username=username.lower()).first()
+    if not user:
+        flash('Юзер не найден')
+        return redirect(url_for('index'))
+
+    follows = Follow.query.filter_by(follower_id=user.id).all()
+    users = [f.following for f in follows]
+
+    return render_template('following.html', user=user, users=users, title='Подписки')
+
+
 @app.route('/follow/<username>', methods=['POST'])
 def toggle_follow(username):
     if 'user_id' not in session:
