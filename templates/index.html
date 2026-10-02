@@ -92,6 +92,14 @@
                     <span class="video-filename" id="video-filename"></span>
                 </div>
 
+                <div class="video-upload">
+                    <label class="video-label">
+                        📎 Прикрепить файл
+                        <input type="file" name="attachment" id="file-input" accept=".pdf,.doc,.docx,.txt,.zip,.rar,.xls,.xlsx,.ppt,.pptx,.csv" style="display:none;">
+                    </label>
+                    <span class="video-filename" id="file-filename"></span>
+                </div>
+
                 <div class="poll-toggle-wrap">
                     <label class="poll-toggle-label">
                         <input type="checkbox" id="poll-toggle" onchange="document.getElementById('poll-block').style.display = this.checked ? 'block' : 'none';">
@@ -128,10 +136,21 @@
     </main>
 <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <script>
-document.getElementById('video-input').addEventListener('change', function() {
-    var name = this.files[0] ? this.files[0].name : '';
-    document.getElementById('video-filename').textContent = name;
-});
+var videoInput = document.getElementById('video-input');
+var fileInput = document.getElementById('file-input');
+
+if (videoInput) {
+    videoInput.addEventListener('change', function() {
+        var name = this.files[0] ? this.files[0].name : '';
+        document.getElementById('video-filename').textContent = name;
+    });
+}
+if (fileInput) {
+    fileInput.addEventListener('change', function() {
+        var name = this.files[0] ? this.files[0].name : '';
+        document.getElementById('file-filename').textContent = name;
+    });
+}
 </script>
     <script src="{{ url_for('static', filename='pwa.js') }}"></script>
 </body>

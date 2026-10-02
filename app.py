@@ -22,8 +22,11 @@ STORIES_FOLDER = os.path.join(basedir, 'static', 'stories')
 os.makedirs(STORIES_FOLDER, exist_ok=True)
 VIDEOS_FOLDER = os.path.join(basedir, 'static', 'videos')
 os.makedirs(VIDEOS_FOLDER, exist_ok=True)
+FILES_FOLDER = os.path.join(basedir, 'static', 'files')
+os.makedirs(FILES_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
+ALLOWED_FILE_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt', 'zip', 'rar', 'xls', 'xlsx', 'ppt', 'pptx', 'csv'}
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
 db.init_app(app)
@@ -37,6 +40,10 @@ def allowed_file(filename):
 
 def allowed_video(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+
+
+def allowed_doc(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_FILE_EXTENSIONS
 
 
 @app.template_filter('linkify')
@@ -345,6 +352,29 @@ def create_post():
                 post.video = v_filename
             else:
                 flash('Видео: только mp4, webm, mov')
+                return redirect(url_for('index'))
+
+        # Обработка файла
+        doc_file = request.files.get('attachment')
+        if doc_file and doc_file.filename:
+            if allowed_doc(doc_file.filename):
+                doc_file.seek(0, 2)
+                size = doc_file.tell()
+                doc_file.seek(0)
+
+                if size > 20 * 1024 * 1024:
+                    flash('Файл — максимум 20 МБ')
+                    return redirect(url_for('index'))
+
+                ext = doc_file.filename.rsplit('.', 1)[1].lower()
+                f_filename = f"file_{session['user_id']}_{int(datetime.utcnow().timestamp())}.{ext}"
+                doc_file.save(os.path.join(FILES_FOLDER, f_filename))
+
+                post.file = f_filename
+                post.file_name = doc_file.filename[:200]
+                post.file_size = size
+            else:
+                flash('Файл: pdf, doc, docx, txt, zip, rar, xls, ppt, csv')
                 return redirect(url_for('index'))
 
         db.session.add(post)

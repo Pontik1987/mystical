@@ -20,6 +20,33 @@
         </div>
     {% endif %}
 
+    {% if post.file %}
+        <div class="post-file">
+            <div class="post-file-icon">
+                {% set ext = post.file.rsplit('.', 1)[1].lower() %}
+                {% if ext == 'pdf' %}📄
+                {% elif ext in ['doc', 'docx'] %}📝
+                {% elif ext in ['xls', 'xlsx', 'csv'] %}📊
+                {% elif ext in ['ppt', 'pptx'] %}📽
+                {% elif ext in ['zip', 'rar'] %}🗜
+                {% elif ext == 'txt' %}📃
+                {% else %}📎{% endif %}
+            </div>
+            <div class="post-file-info">
+                <div class="post-file-name">{{ post.file_name }}</div>
+                <div class="post-file-size">
+                    {% if post.file_size %}
+                        {% if post.file_size < 1024 %} {{ post.file_size }} Б
+                        {% elif post.file_size < 1024 * 1024 %} {{ (post.file_size / 1024)|round(1) }} КБ
+                        {% else %} {{ (post.file_size / 1024 / 1024)|round(2) }} МБ
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{{ url_for('static', filename='files/' + post.file) }}" class="post-file-download" download>⬇ Скачать</a>
+        </div>
+    {% endif %}
+
     {% if post.poll %}
         <div class="poll-box">
             <div class="poll-question">📊 {{ post.poll.question }}</div>

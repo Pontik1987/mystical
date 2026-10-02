@@ -2608,3 +2608,67 @@ body.dark .video-label {
 body.dark .video-filename {
     color: #b0b3b8;
 }
+
+/* --- File attachment in posts --- */
+.post-file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: #f9f7ff;
+    border: 1px solid #e5defa;
+    border-radius: 12px;
+}
+
+.post-file-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.post-file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.post-file-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-file-size {
+    font-size: 12px;
+    color: #999;
+    margin-top: 2px;
+}
+
+.post-file-download {
+    padding: 8px 14px;
+    background: #7c3aed;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.post-file-download:hover {
+    background: #6d28d9;
+}
+
+body.dark .post-file {
+    background: #2a2340;
+    border-color: #4c1d95;
+}
+body.dark .post-file-name {
+    color: #e4e6eb;
+}
+body.dark .post-file-size {
+    color: #888;
+}
