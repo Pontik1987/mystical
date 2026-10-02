@@ -1221,6 +1221,25 @@ def upload_avatar():
     return redirect(url_for('profile', username=user.username))
 
 
+@app.route('/manifest.json')
+def manifest():
+    """Отдаём PWA-манифест с правильной кодировкой."""
+    from flask import send_from_directory
+    response = send_from_directory('static', 'manifest.json', mimetype='application/json')
+    response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
+
+@app.route('/sw.js')
+def service_worker():
+    """Отдаём service worker из корня (для правильного scope)."""
+    from flask import send_from_directory
+    response = send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    response.headers['Content-Type'] = 'application/javascript; charset=utf-8'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
+
 with app.app_context():
     db.create_all()
 
