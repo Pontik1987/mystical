@@ -999,9 +999,7 @@ def toggle_pin(post_id):
         # Открепляем
         post.is_pinned = False
     else:
-        # Открепляем все свои посты
-        Post.query.filter_by(user_id=session['user_id'], is_pinned=True).update({'is_pinned': False})
-        # Закрепляем этот
+        # Закрепляем (можно несколько)
         post.is_pinned = True
 
     db.session.commit()

@@ -106,19 +106,36 @@
             {% endif %}
         </div>
 
-        <h3 class="section-title">Посты {{ user.username }}</h3>
+        {% set pinned_posts = posts|selectattr('is_pinned')|list %}
+        {% set normal_posts = posts|rejectattr('is_pinned')|list %}
 
-        <div class="posts">
-            {% if posts %}
-                {% for post in posts %}
+        {% if pinned_posts %}
+            <h3 class="section-title">📌 Закреплено ({{ pinned_posts|length }})</h3>
+            <div class="pinned-section">
+                {% for post in pinned_posts %}
                     {% with next_url=url_for('profile', username=user.username) %}
                         {% include '_post.html' %}
                     {% endwith %}
                 {% endfor %}
-            {% else %}
-                <p class="empty">У этого юзера пока нет постов.</p>
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
+
+        {% if normal_posts %}
+            <h3 class="section-title" style="margin-top:24px;">
+                {% if pinned_posts %}Остальные посты{% else %}Посты {{ user.username }}{% endif %}
+            </h3>
+            <div class="posts">
+                {% for post in normal_posts %}
+                    {% with next_url=url_for('profile', username=user.username) %}
+                        {% include '_post.html' %}
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if not posts %}
+            <p class="empty">У этого юзера пока нет постов.</p>
+        {% endif %}
     </main>
 <script src="{{ url_for('static', filename='theme.js') }}"></script>
 </body>

@@ -2672,3 +2672,26 @@ body.dark .post-file-name {
 body.dark .post-file-size {
     color: #888;
 }
+
+/* --- Pinned section --- */
+.pinned-section {
+    position: relative;
+    padding: 8px;
+    background: rgba(254, 243, 199, 0.3);
+    border-radius: 16px;
+    border: 1px dashed #fcd34d;
+    margin-bottom: 8px;
+}
+
+.pinned-section .post {
+    background: #fffef5;
+}
+
+body.dark .pinned-section {
+    background: rgba(254, 243, 199, 0.05);
+    border-color: #92400e;
+}
+
+body.dark .pinned-section .post {
+    background: #2a2618;
+}
