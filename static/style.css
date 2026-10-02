@@ -1512,3 +1512,24 @@ body.dark .sort-tab.active {
     color: white;
     border-color: #7c3aed;
 }
+
+/* --- Notification avatars --- */
+.notif-avatar,
+.notif-avatar-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+body.dark .notif-avatar {
+    background: #a78bfa;
+}

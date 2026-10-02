@@ -34,7 +34,12 @@
                 {% for n in notifications %}
                     <div class="notification-item">
                         {% if n.type == 'like' %}
-                            <span class="notif-icon">❤️</span>
+                            {% if n.actor.avatar %}
+                            <img src="{{ url_for('static', filename='avatars/' + n.actor.avatar) }}" class="notif-avatar-img" alt="">
+                        {% else %}
+                            <div class="notif-avatar">{{ n.actor.username[0]|upper }}</div>
+                        {% endif %}
+                        <span class="notif-icon">❤️</span>
                             <div class="notif-body">
                                 <a href="{{ url_for('profile', username=n.actor.username) }}" class="notif-actor">
                                     {{ n.actor.username }}
@@ -45,7 +50,12 @@
                                 {% endif %}
                             </div>
                         {% elif n.type == 'comment' %}
-                            <span class="notif-icon">💬</span>
+                            {% if n.actor.avatar %}
+                            <img src="{{ url_for('static', filename='avatars/' + n.actor.avatar) }}" class="notif-avatar-img" alt="">
+                        {% else %}
+                            <div class="notif-avatar">{{ n.actor.username[0]|upper }}</div>
+                        {% endif %}
+                        <span class="notif-icon">💬</span>
                             <div class="notif-body">
                                 <a href="{{ url_for('profile', username=n.actor.username) }}" class="notif-actor">
                                     {{ n.actor.username }}
@@ -56,7 +66,12 @@
                                 {% endif %}
                             </div>
                         {% elif n.type == 'follow' %}
-                            <span class="notif-icon">👤</span>
+                            {% if n.actor.avatar %}
+                            <img src="{{ url_for('static', filename='avatars/' + n.actor.avatar) }}" class="notif-avatar-img" alt="">
+                        {% else %}
+                            <div class="notif-avatar">{{ n.actor.username[0]|upper }}</div>
+                        {% endif %}
+                        <span class="notif-icon">👤</span>
                             <div class="notif-body">
                                 <a href="{{ url_for('profile', username=n.actor.username) }}" class="notif-actor">
                                     {{ n.actor.username }}
