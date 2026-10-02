@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать группу — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('groups') }}" class="user-link">← Группы</a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="edit-card">
+            <h2>👥 Создать группу</h2>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for msg in messages %}
+                        <div class="flash">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <label class="form-label">Название группы</label>
+                <input type="text" name="name" class="form-input" maxlength="100" required autofocus placeholder="Например: Друзья">
+
+                <label class="form-label">Выбери участников (минимум 2)</label>
+                <div class="users-checkbox-list">
+                    {% for u in all_users %}
+                        <label class="user-checkbox">
+                            <input type="checkbox" name="members" value="{{ u.id }}">
+                            {% if u.avatar %}
+                                <img src="{{ url_for('static', filename='avatars/' + u.avatar) }}" class="user-checkbox-avatar" alt="">
+                            {% else %}
+                                <div class="user-checkbox-avatar-text">{{ u.username[0]|upper }}</div>
+                            {% endif %}
+                            <span>{{ u.username }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <div class="edit-actions">
+                    <button type="submit" class="btn-primary">Создать группу</button>
+                    <a href="{{ url_for('groups') }}" class="btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

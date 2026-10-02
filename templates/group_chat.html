@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ group.name }} — Группа</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('groups') }}" class="user-link">← Группы</a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="chat-container">
+        <div class="chat-header">
+            <a href="{{ url_for('groups') }}" class="chat-back">← Назад</a>
+            <div class="chat-with">
+                <div class="chat-avatar">👥</div>
+                {{ group.name }}
+                <span style="font-size:12px;color:#999;margin-left:6px;">{{ members|length }} участников</span>
+            </div>
+            <form method="POST" action="{{ url_for('group_leave', group_id=group.id) }}" onsubmit="return confirm('Выйти из группы?');" style="display:inline;">
+                <button type="submit" class="btn-secondary btn-small">Выйти из группы</button>
+            </form>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            {% for m in messages %}
+                <div class="chat-bubble {% if m.sender_id == session.user_id %}mine{% else %}theirs{% endif %}">
+                    {% if m.sender_id != session.user_id %}
+                        <div class="chat-sender">{{ m.sender.username }}</div>
+                    {% endif %}
+                    <div class="chat-text">{{ m.content }}</div>
+                    <div class="chat-time">{{ m.created_at.strftime('%d.%m %H:%M') }}</div>
+                </div>
+            {% endfor %}
+            {% if not messages %}
+                <p class="empty">Нет сообщений. Напиши первым!</p>
+            {% endif %}
+        </div>
+
+        <form method="POST" action="{{ url_for('group_send', group_id=group.id) }}" class="chat-form">
+            <input type="text" name="content" placeholder="Написать сообщение..." required autofocus autocomplete="off">
+            <button type="submit">→</button>
+        </form>
+
+        <div style="background:white;padding:12px 20px;border-radius:0 0 12px 12px;font-size:13px;color:#666;">
+            <strong>Участники:</strong>
+            {% for u in members %}
+                {{ u.username }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

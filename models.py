@@ -212,3 +212,38 @@ class PinnedChat(db.Model):
 
     user = db.relationship('User', foreign_keys=[user_id], backref='pinned_chats')
     other = db.relationship('User', foreign_keys=[other_id])
+
+class GroupChat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    creator = db.relationship('User', foreign_keys=[creator_id], backref='created_groups')
+    members = db.relationship('GroupMember', backref='group', lazy=True, cascade='all, delete-orphan')
+    messages = db.relationship('GroupMessage', backref='group', lazy=True, cascade='all, delete-orphan',
+                               order_by='GroupMessage.created_at')
+
+    def member_ids(self):
+        return [m.user_id for m in self.members]
+
+
+class GroupMember(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey('group_chat.id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'group_id', name='unique_group_member'),)
+
+    user = db.relationship('User', backref='group_memberships')
+
+
+class GroupMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey('group_chat.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sender = db.relationship('User', backref='group_messages_sent')

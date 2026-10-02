@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat, GroupChat, GroupMember, GroupMessage
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
 import re
@@ -1238,6 +1238,172 @@ def service_worker():
     response.headers['Content-Type'] = 'application/javascript; charset=utf-8'
     response.headers['Service-Worker-Allowed'] = '/'
     return response
+
+
+@app.route('/groups')
+def groups():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Группы, где я участник
+    memberships = GroupMember.query.filter_by(user_id=session['user_id']).all()
+    groups_list = [m.group for m in memberships]
+
+    return render_template('groups.html', groups=groups_list)
+
+
+@app.route('/group/create', methods=['GET', 'POST'])
+def create_group():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Все юзеры кроме меня
+    all_users = User.query.filter(User.id != session['user_id']).order_by(User.username).all()
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        member_ids = request.form.getlist('members')
+
+        if not name:
+            flash('Введи название группы')
+            return redirect(url_for('create_group'))
+
+        if len(name) > 100:
+            flash('Название — максимум 100 символов')
+            return redirect(url_for('create_group'))
+
+        if len(member_ids) < 2:
+            flash('Выбери минимум 2 участников')
+            return redirect(url_for('create_group'))
+
+        group = GroupChat(name=name, creator_id=session['user_id'])
+        db.session.add(group)
+        db.session.flush()
+
+        # Добавляем создателя
+        db.session.add(GroupMember(user_id=session['user_id'], group_id=group.id))
+
+        # Добавляем остальных
+        for uid in member_ids:
+            try:
+                db.session.add(GroupMember(user_id=int(uid), group_id=group.id))
+            except:
+                pass
+
+        db.session.commit()
+
+        flash(f'Группа «{name}» создана!')
+        return redirect(url_for('group_chat', group_id=group.id))
+
+    return render_template('create_group.html', all_users=all_users)
+
+
+@app.route('/group/<int:group_id>')
+def group_chat(group_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    group = GroupChat.query.get_or_404(group_id)
+
+    # Проверяем, что я участник
+    is_member = GroupMember.query.filter_by(user_id=session['user_id'], group_id=group.id).first()
+    if not is_member:
+        flash('Ты не участник этой группы')
+        return redirect(url_for('groups'))
+
+    messages = GroupMessage.query.filter_by(group_id=group.id).order_by(GroupMessage.created_at).all()
+    members = [m.user for m in group.members]
+
+    return render_template('group_chat.html', group=group, messages=messages, members=members)
+
+
+@app.route('/group/<int:group_id>/send', methods=['POST'])
+def group_send(group_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    group = GroupChat.query.get_or_404(group_id)
+    is_member = GroupMember.query.filter_by(user_id=session['user_id'], group_id=group.id).first()
+    if not is_member:
+        return redirect(url_for('groups'))
+
+    content = request.form.get('content', '').strip()
+    if content:
+        if len(content) > 1000:
+            flash('Сообщение — максимум 1000 символов')
+            return redirect(url_for('group_chat', group_id=group.id))
+
+        msg = GroupMessage(content=content, sender_id=session['user_id'], group_id=group.id)
+        db.session.add(msg)
+        db.session.commit()
+
+    return redirect(url_for('group_chat', group_id=group.id))
+
+
+@app.route('/group/<int:group_id>/leave', methods=['POST'])
+def group_leave(group_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    group = GroupChat.query.get_or_404(group_id)
+    membership = GroupMember.query.filter_by(user_id=session['user_id'], group_id=group.id).first()
+
+    if membership:
+        db.session.delete(membership)
+        db.session.commit()
+        flash('Ты вышел из группы')
+
+    # Если группа пустая — удаляем её
+    if not group.members:
+        db.session.delete(group)
+        db.session.commit()
+
+    return redirect(url_for('groups'))
+
+
+@app.route('/group/<int:group_id>/add', methods=['POST'])
+def group_add_member(group_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    group = GroupChat.query.get_or_404(group_id)
+
+    # Только создатель может добавлять
+    if group.creator_id != session['user_id']:
+        flash('Только создатель может добавлять')
+        return redirect(url_for('group_chat', group_id=group.id))
+
+    user_id = request.form.get('user_id', type=int)
+    if user_id:
+        existing = GroupMember.query.filter_by(user_id=user_id, group_id=group.id).first()
+        if not existing:
+            db.session.add(GroupMember(user_id=user_id, group_id=group.id))
+            db.session.commit()
+
+    return redirect(url_for('group_chat', group_id=group.id))
+
+
+@app.route('/group/<int:group_id>/remove/<int:user_id>', methods=['POST'])
+def group_remove_member(group_id, user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    group = GroupChat.query.get_or_404(group_id)
+
+    if group.creator_id != session['user_id']:
+        flash('Только создатель может удалять')
+        return redirect(url_for('group_chat', group_id=group.id))
+
+    if user_id == group.creator_id:
+        flash('Нельзя удалить создателя')
+        return redirect(url_for('group_chat', group_id=group.id))
+
+    membership = GroupMember.query.filter_by(user_id=user_id, group_id=group.id).first()
+    if membership:
+        db.session.delete(membership)
+        db.session.commit()
+
+    return redirect(url_for('group_chat', group_id=group.id))
 
 
 with app.app_context():
