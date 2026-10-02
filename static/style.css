@@ -2783,3 +2783,123 @@ body.dark .emoji-category-title {
 .textarea-wrapper textarea {
     flex: 1;
 }
+
+/* --- Activity chart --- */
+.activity-chart {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 20px 16px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    min-height: 220px;
+    margin-bottom: 12px;
+}
+
+.activity-day {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    min-height: 180px;
+}
+
+.activity-bar-wrapper {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 100%;
+    min-height: 150px;
+}
+
+.activity-bar {
+    width: 70%;
+    max-width: 40px;
+    background: linear-gradient(180deg, #7c3aed 0%, #a78bfa 100%);
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    min-height: 4px;
+    transition: height 0.4s ease, transform 0.15s;
+    display: flex;
+    justify-content: center;
+}
+
+.activity-bar:hover {
+    transform: scaleX(1.1);
+}
+
+.activity-value {
+    position: absolute;
+    top: -22px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #7c3aed;
+    white-space: nowrap;
+}
+
+.activity-label {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 11px;
+    color: #666;
+}
+
+.activity-day-name {
+    font-weight: 600;
+    color: #7c3aed;
+}
+
+.activity-day-num {
+    color: #999;
+    font-size: 10px;
+}
+
+/* --- Ratio chart --- */
+.ratio-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.ratio-item { width: 100%; }
+
+.ratio-label {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.ratio-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.ratio-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s ease;
+}
+
+/* Dark theme */
+body.dark .activity-chart,
+body.dark .ratio-chart {
+    background: #242526;
+}
+
+body.dark .activity-label { color: #b0b3b8; }
+body.dark .activity-day-num { color: #666; }
+body.dark .ratio-label { color: #e4e6eb; }
+body.dark .ratio-bar-bg { background: #3a3b3c; }

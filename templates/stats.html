@@ -70,6 +70,68 @@
             </div>
         </div>
 
+        <!-- График активности за 7 дней -->
+        <h3 class="section-title" style="margin-top:24px;">📈 Активность за 7 дней</h3>
+        <div class="activity-chart">
+            {% if max_activity > 0 %}
+                {% for day in activity_7days %}
+                    <div class="activity-day">
+                        <div class="activity-bar-wrapper">
+                            <div class="activity-bar" style="height: {{ day.percent }}%;" title="{{ day.total }} действий">
+                                {% if day.total > 0 %}<span class="activity-value">{{ day.total }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <div class="activity-label">
+                            <div class="activity-day-name">{{ day.day_name }}</div>
+                            <div class="activity-day-num">{{ day.day_num }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Активности пока нет.</p>
+            {% endif %}
+        </div>
+
+        {% if top_day and top_day.total > 0 %}
+            <p style="text-align:center;color:#666;font-size:14px;margin-top:8px;">
+                🔥 Самый активный день: <strong>{{ top_day.day_name }}, {{ top_day.day_num }}</strong> — {{ top_day.total }} действий
+            </p>
+        {% endif %}
+
+        <!-- Соотношение контента -->
+        <h3 class="section-title" style="margin-top:24px;">📊 Соотношение контента</h3>
+        <div class="ratio-chart">
+            {% set total_all = total_posts + total_comments + total_likes %}
+            {% if total_all > 0 %}
+                {% set posts_pct = (total_posts * 100 / total_all)|round(1) %}
+                {% set comments_pct = (total_comments * 100 / total_all)|round(1) %}
+                {% set likes_pct = (total_likes * 100 / total_all)|round(1) %}
+
+                <div class="ratio-item">
+                    <div class="ratio-label">📝 Посты — {{ total_posts }} ({{ posts_pct }}%)</div>
+                    <div class="ratio-bar-bg">
+                        <div class="ratio-bar-fill" style="width: {{ posts_pct }}%; background: #7c3aed;"></div>
+                    </div>
+                </div>
+
+                <div class="ratio-item">
+                    <div class="ratio-label">💬 Комментарии — {{ total_comments }} ({{ comments_pct }}%)</div>
+                    <div class="ratio-bar-bg">
+                        <div class="ratio-bar-fill" style="width: {{ comments_pct }}%; background: #3b82f6;"></div>
+                    </div>
+                </div>
+
+                <div class="ratio-item">
+                    <div class="ratio-label">❤️ Реакции — {{ total_likes }} ({{ likes_pct }}%)</div>
+                    <div class="ratio-bar-bg">
+                        <div class="ratio-bar-fill" style="width: {{ likes_pct }}%; background: #ec4899;"></div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="empty">Нет данных.</p>
+            {% endif %}
+        </div>
+
         <!-- Социалка -->
         <h3 class="section-title" style="margin-top:24px;">👥 Социалка</h3>
         <div class="stats-grid">

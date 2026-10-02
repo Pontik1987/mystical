@@ -478,10 +478,57 @@ def user_stats(username):
             if like.reaction in reactions:
                 reactions[like.reaction] += 1
 
+    # Активность за 7 дней
+    activity_7days = []
+    max_activity = 1
+    today = datetime.utcnow().date()
+
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_start = datetime.combine(day, datetime.min.time())
+        day_end = day_start + timedelta(days=1)
+
+        posts_count = Post.query.filter(
+            Post.user_id == user.id,
+            Post.created_at >= day_start,
+            Post.created_at < day_end
+        ).count()
+
+        comments_count = Comment.query.filter(
+            Comment.user_id == user.id,
+            Comment.created_at >= day_start,
+            Comment.created_at < day_end
+        ).count()
+
+        total = posts_count + comments_count
+        if total > max_activity:
+            max_activity = total
+
+        activity_7days.append({
+            'day': day,
+            'day_name': ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'][day.weekday()],
+            'day_num': day.day,
+            'posts': posts_count,
+            'comments': comments_count,
+            'total': total,
+            'percent': 0  # посчитаем ниже
+        })
+
+    # Считаем проценты
+    for day_data in activity_7days:
+        if max_activity > 0:
+            day_data['percent'] = int(day_data['total'] * 100 / max_activity)
+
+    # Топ день
+    top_day = max(activity_7days, key=lambda d: d['total']) if activity_7days else None
+
     return render_template(
         'stats.html',
         user=user,
         total_posts=total_posts,
+        activity_7days=activity_7days,
+        max_activity=max_activity,
+        top_day=top_day,
         total_likes=total_likes,
         total_comments=total_comments,
         total_reposts=total_reposts,
