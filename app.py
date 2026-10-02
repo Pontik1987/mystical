@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
 import re
@@ -252,9 +252,29 @@ def create_post():
     if len(content) > 500:
         flash('Пост — максимум 500 символов')
         return redirect(url_for('index'))
+
     if content:
         post = Post(content=content, user_id=session['user_id'])
         db.session.add(post)
+        db.session.flush()  # получаем post.id
+
+        # Обработка опроса
+        poll_question = request.form.get('poll_question', '').strip()
+        if poll_question:
+            options = []
+            for i in range(2, 5):
+                opt = request.form.get(f'poll_option_{i}', '').strip()
+                if opt:
+                    options.append(opt)
+
+            if len(options) >= 2:
+                poll = Poll(question=poll_question[:300], post_id=post.id)
+                db.session.add(poll)
+                db.session.flush()
+
+                for opt_text in options:
+                    db.session.add(PollOption(text=opt_text[:200], poll_id=poll.id))
+
         db.session.commit()
 
     return redirect(url_for('index'))
@@ -708,6 +728,36 @@ def api_chat(username):
             for m in messages_list
         ]
     }
+
+@app.route('/vote/<int:option_id>', methods=['POST'])
+def vote(option_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    option = PollOption.query.get_or_404(option_id)
+    poll = option.poll
+
+    # Проверяем, голосовал ли уже
+    existing = PollVote.query.join(PollOption).filter(
+        PollOption.poll_id == poll.id,
+        PollVote.user_id == session['user_id']
+    ).first()
+
+    if existing:
+        if existing.option_id == option.id:
+            # Тот же вариант — отменяем голос
+            db.session.delete(existing)
+        else:
+            # Меняем голос
+            existing.option_id = option.id
+    else:
+        db.session.add(PollVote(user_id=session['user_id'], option_id=option.id))
+
+    db.session.commit()
+
+    next_url = request.form.get('next') or url_for('index')
+    return redirect(next_url)
+
 
 @app.route('/pin/<int:post_id>', methods=['POST'])
 def toggle_pin(post_id):

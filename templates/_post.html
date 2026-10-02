@@ -11,6 +11,29 @@
     </div>
     <div class="post-content">{{ post.content|linkify }}</div>
 
+    {% if post.poll %}
+        <div class="poll-box">
+            <div class="poll-question">📊 {{ post.poll.question }}</div>
+            <div class="poll-options">
+                {% set user_choice = post.poll.user_voted(session.user_id) %}
+                {% set total = post.poll.total_votes() %}
+                {% for opt in post.poll.options %}
+                    <form method="POST" action="{{ url_for('vote', option_id=opt.id) }}" class="poll-option-form">
+                        <input type="hidden" name="next" value="{{ next_url }}">
+                        <button type="submit" class="poll-option {% if user_choice == opt.id %}chosen{% endif %}">
+                            <span class="poll-option-fill" style="width: {{ opt.percent() }}%"></span>
+                            <span class="poll-option-text">
+                                {% if user_choice == opt.id %}✅ {% endif %}{{ opt.text }}
+                            </span>
+                            <span class="poll-option-percent">{{ opt.percent() }}% ({{ opt.votes|length }})</span>
+                        </button>
+                    </form>
+                {% endfor %}
+            </div>
+            <div class="poll-footer">Всего голосов: {{ total }}</div>
+        </div>
+    {% endif %}
+
     <div class="post-actions">
         <div class="reaction-panel">
             {% set reactions = [('like', '❤️'), ('class', '👍'), ('funny', '😂'), ('wow', '😮')] %}

@@ -56,7 +56,22 @@
 
         <div class="post-form">
             <form method="POST" action="{{ url_for('create_post') }}">
-                <textarea name="content" placeholder="Что нового? Используй #хэштеги!" required></textarea>
+                <textarea name="content" placeholder="Что нового? Используй #хэштеги и @упоминания!" required></textarea>
+
+                <div class="poll-toggle-wrap">
+                    <label class="poll-toggle-label">
+                        <input type="checkbox" id="poll-toggle" onchange="document.getElementById('poll-block').style.display = this.checked ? 'block' : 'none';">
+                        📊 Добавить опрос
+                    </label>
+                </div>
+
+                <div id="poll-block" style="display:none;" class="poll-block">
+                    <input type="text" name="poll_question" placeholder="Вопрос опроса..." maxlength="300" class="poll-input">
+                    <input type="text" name="poll_option_2" placeholder="Вариант 1" maxlength="200" class="poll-input">
+                    <input type="text" name="poll_option_3" placeholder="Вариант 2" maxlength="200" class="poll-input">
+                    <input type="text" name="poll_option_4" placeholder="Вариант 3 (необязательно)" maxlength="200" class="poll-input">
+                </div>
+
                 <button type="submit">Опубликовать</button>
             </form>
         </div>

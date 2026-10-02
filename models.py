@@ -129,3 +129,47 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+
+
+class Poll(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(300), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    post = db.relationship('Post', backref=db.backref('poll', uselist=False))
+    options = db.relationship('PollOption', backref='poll', lazy=True,
+                              cascade='all, delete-orphan', order_by='PollOption.id')
+
+    def total_votes(self):
+        return sum(len(opt.votes) for opt in self.options)
+
+    def user_voted(self, user_id):
+        for opt in self.options:
+            for v in opt.votes:
+                if v.user_id == user_id:
+                    return opt.id
+        return None
+
+
+class PollOption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(200), nullable=False)
+    poll_id = db.Column(db.Integer, db.ForeignKey('poll.id'), nullable=False)
+
+    votes = db.relationship('PollVote', backref='option', lazy=True, cascade='all, delete-orphan')
+
+    def percent(self):
+        total = sum(len(opt.votes) for opt in self.poll.options)
+        if total == 0:
+            return 0
+        return round(len(self.votes) * 100 / total)
+
+
+class PollVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    option_id = db.Column(db.Integer, db.ForeignKey('poll_option.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'option_id', name='unique_user_poll_option'),)
