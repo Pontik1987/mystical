@@ -39,6 +39,26 @@
     </header>
 
     <main class="feed-container">
+        <!-- Полоса историй -->
+        <div class="stories-bar">
+            <a href="{{ url_for('create_story') }}" class="story-add">
+                <div class="story-add-circle">+</div>
+                <div class="story-add-label">Создать</div>
+            </a>
+            {% for s in recent_stories %}
+                <a href="{{ url_for('story_view', story_id=s.id) }}" class="story-item">
+                    <div class="story-circle">
+                        {% if s.author.avatar %}
+                            <img src="{{ url_for('static', filename='avatars/' + s.author.avatar) }}" alt="">
+                        {% else %}
+                            <div class="story-circle-text">{{ s.author.username[0]|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="story-name">{{ s.author.username }}</div>
+                </a>
+            {% endfor %}
+        </div>
+
         <div class="feed-tabs">
             <a href="{{ url_for('index', tab='all', sort=sort) }}" class="tab {% if tab == 'all' %}active{% endif %}">
                 🌍 Все

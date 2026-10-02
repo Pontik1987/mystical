@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="story-viewer-body">
+    <div class="story-viewer">
+        <div class="story-viewer-header">
+            <a href="{{ url_for('index') }}" class="story-close">← Назад</a>
+            <div class="story-author">
+                {% if story.author.avatar %}
+                    <img src="{{ url_for('static', filename='avatars/' + story.author.avatar) }}" class="story-author-avatar" alt="">
+                {% else %}
+                    <div class="story-author-avatar-text">{{ story.author.username[0]|upper }}</div>
+                {% endif %}
+                <a href="{{ url_for('profile', username=story.author.username) }}">{{ story.author.username }}</a>
+                <span class="story-time">{{ story.created_at.strftime('%d.%m %H:%M') }}</span>
+            </div>
+            {% if story.user_id == session.user_id %}
+                <form method="POST" action="{{ url_for('delete_story', story_id=story.id) }}" onsubmit="return confirm('Удалить?');">
+                    <button type="submit" class="story-delete-btn" title="Удалить">🗑</button>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="story-viewer-content">
+            <img src="{{ url_for('static', filename='stories/' + story.image) }}" alt="Story" class="story-viewer-img">
+            {% if story.caption %}
+                <div class="story-caption">{{ story.caption }}</div>
+            {% endif %}
+        </div>
+
+        <div class="story-viewer-footer">
+            <span>👁 {{ story.views|length }} просмотров</span>
+            <span>⏰ Осталось: {{ story.hours_left() }} ч</span>
+        </div>
+
+        <div class="story-nav">
+            {% set idx = author_stories.index(story) %}
+            {% if idx > 0 %}
+                <a href="{{ url_for('story_view', story_id=author_stories[idx-1].id) }}" class="story-nav-prev">←</a>
+            {% endif %}
+            {% if idx < author_stories|length - 1 %}
+                <a href="{{ url_for('story_view', story_id=author_stories[idx+1].id) }}" class="story-nav-next">→</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

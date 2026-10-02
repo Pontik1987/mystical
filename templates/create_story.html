@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать историю — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('stories_list') }}" class="user-link">← Истории</a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="edit-card">
+            <h2>📖 Новая история</h2>
+            <p class="form-hint" style="margin-bottom:16px;">История живёт 24 часа, потом исчезает.</p>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for msg in messages %}
+                        <div class="flash">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" enctype="multipart/form-data">
+                <label class="form-label">Фото</label>
+                <input type="file" name="image" class="form-input" accept="image/*" required>
+
+                <label class="form-label">Подпись (необязательно)</label>
+                <input type="text" name="caption" class="form-input" maxlength="300" placeholder="Что происходит?">
+                <p class="form-hint">Макс 300 символов</p>
+
+                <div class="edit-actions">
+                    <button type="submit" class="btn-primary">Опубликовать историю</button>
+                    <a href="{{ url_for('index') }}" class="btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

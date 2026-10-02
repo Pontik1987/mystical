@@ -247,3 +247,32 @@ class GroupMessage(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     sender = db.relationship('User', backref='group_messages_sent')
+
+class Story(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    image = db.Column(db.String(200), nullable=False)
+    caption = db.Column(db.String(300), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+
+    author = db.relationship('User', backref='stories')
+    views = db.relationship('StoryView', backref='story', lazy=True, cascade='all, delete-orphan')
+
+    def is_expired(self):
+        return datetime.utcnow() > self.expires_at
+
+    def hours_left(self):
+        delta = self.expires_at - datetime.utcnow()
+        return max(0, int(delta.total_seconds() // 3600))
+
+
+class StoryView(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    story_id = db.Column(db.Integer, db.ForeignKey('story.id'), nullable=False)
+    viewed_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'story_id', name='unique_story_view'),)
+
+    user = db.relationship('User', backref='story_views')

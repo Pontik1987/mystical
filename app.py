@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat, GroupChat, GroupMember, GroupMessage
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat, GroupChat, GroupMember, GroupMessage, Story, StoryView
 from werkzeug.utils import secure_filename
+from datetime import datetime, timedelta
 from markupsafe import Markup, escape
 import re
 import os
@@ -17,6 +18,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 AVATAR_FOLDER = os.path.join(basedir, 'static', 'avatars')
+STORIES_FOLDER = os.path.join(basedir, 'static', 'stories')
+os.makedirs(STORIES_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
@@ -194,7 +197,14 @@ def index():
         # По дате (новые сверху)
         posts = query.order_by(Post.created_at.desc()).all()
 
-    return render_template('index.html', posts=posts, tab=tab, sort=sort)
+    # Последние истории (не истёкшие, кроме своих)
+    now = datetime.utcnow()
+    recent_stories = Story.query.filter(
+        Story.expires_at > now,
+        Story.user_id != session['user_id']
+    ).order_by(Story.created_at.desc()).limit(20).all()
+
+    return render_template('index.html', posts=posts, tab=tab, sort=sort, recent_stories=recent_stories)
 
 
 @app.route('/search')
@@ -1404,6 +1414,121 @@ def group_remove_member(group_id, user_id):
         db.session.commit()
 
     return redirect(url_for('group_chat', group_id=group.id))
+
+
+@app.route('/stories')
+def stories_list():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Только не истёкшие истории
+    now = datetime.utcnow()
+    stories = Story.query.filter(Story.expires_at > now).order_by(Story.created_at.desc()).all()
+
+    # Группируем по авторам
+    by_author = {}
+    for s in stories:
+        if s.user_id not in by_author:
+            by_author[s.user_id] = []
+        by_author[s.user_id].append(s)
+
+    # Свои истории отдельно
+    my_stories = by_author.pop(session['user_id'], [])
+
+    return render_template('stories.html', my_stories=my_stories, by_author=by_author)
+
+
+@app.route('/story/create', methods=['GET', 'POST'])
+def create_story():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        file = request.files.get('image')
+        caption = request.form.get('caption', '').strip()
+
+        if not file or file.filename == '':
+            flash('Выбери фото')
+            return redirect(url_for('create_story'))
+
+        if not allowed_file(file.filename):
+            flash('Только png, jpg, jpeg, gif, webp')
+            return redirect(url_for('create_story'))
+
+        if len(caption) > 300:
+            flash('Подпись — максимум 300 символов')
+            return redirect(url_for('create_story'))
+
+        # Сохраняем файл
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"story_{session['user_id']}_{int(datetime.utcnow().timestamp())}.{ext}"
+        file.save(os.path.join(STORIES_FOLDER, filename))
+
+        # Создаём историю на 24 часа
+        story = Story(
+            image=filename,
+            caption=caption or None,
+            user_id=session['user_id'],
+            expires_at=datetime.utcnow() + timedelta(hours=24)
+        )
+        db.session.add(story)
+        db.session.commit()
+
+        flash('История создана! Живёт 24 часа.')
+        return redirect(url_for('index'))
+
+    return render_template('create_story.html')
+
+
+@app.route('/story/<int:story_id>')
+def story_view(story_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    story = Story.query.get_or_404(story_id)
+
+    if story.is_expired():
+        flash('История уже истекла')
+        return redirect(url_for('index'))
+
+    # Отмечаем просмотр (если это не моя история)
+    if story.user_id != session['user_id']:
+        existing = StoryView.query.filter_by(user_id=session['user_id'], story_id=story.id).first()
+        if not existing:
+            db.session.add(StoryView(user_id=session['user_id'], story_id=story.id))
+            db.session.commit()
+
+    # Все истории этого автора для пролистывания
+    now = datetime.utcnow()
+    author_stories = Story.query.filter(
+        Story.user_id == story.user_id,
+        Story.expires_at > now
+    ).order_by(Story.created_at.asc()).all()
+
+    return render_template('story_view.html', story=story, author_stories=author_stories)
+
+
+@app.route('/story/<int:story_id>/delete', methods=['POST'])
+def delete_story(story_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    story = Story.query.get_or_404(story_id)
+
+    if story.user_id != session['user_id']:
+        flash('Это не твоя история')
+        return redirect(url_for('index'))
+
+    # Удаляем файл
+    filepath = os.path.join(STORIES_FOLDER, story.image)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+    db.session.delete(story)
+    db.session.commit()
+
+    flash('История удалена')
+    return redirect(url_for('index'))
 
 
 with app.app_context():
