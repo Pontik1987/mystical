@@ -1533,3 +1533,32 @@ body.dark .sort-tab.active {
 body.dark .notif-avatar {
     background: #a78bfa;
 }
+
+/* --- Delete notification --- */
+.notif-delete-form {
+    display: inline;
+    margin-left: 6px;
+}
+
+.notif-delete-btn {
+    background: transparent;
+    border: none;
+    color: #bbb;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 6px;
+    transition: color 0.2s;
+}
+
+.notif-delete-btn:hover {
+    color: #e11d48;
+}
+
+body.dark .notif-delete-btn {
+    color: #666;
+}
+
+body.dark .notif-delete-btn:hover {
+    color: #e11d48;
+}

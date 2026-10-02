@@ -511,6 +511,35 @@ def notifications():
 
     return render_template('notifications.html', notifications=items)
 
+
+@app.route('/notification/<int:notif_id>/delete', methods=['POST'])
+def delete_notification(notif_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    notif = Notification.query.get_or_404(notif_id)
+
+    if notif.user_id != session['user_id']:
+        flash('Это не твоё уведомление')
+        return redirect(url_for('notifications'))
+
+    db.session.delete(notif)
+    db.session.commit()
+
+    return redirect(url_for('notifications'))
+
+
+@app.route('/notifications/clear', methods=['POST'])
+def clear_notifications():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    Notification.query.filter_by(user_id=session['user_id']).delete()
+    db.session.commit()
+
+    flash('Уведомления очищены')
+    return redirect(url_for('notifications'))
+
 @app.route('/messages')
 def messages():
     if 'user_id' not in session:

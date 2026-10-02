@@ -27,6 +27,11 @@
         <div class="tag-header">
             <h2 class="tag-title">🔔 Уведомления</h2>
             <p class="tag-count">Всего: {{ notifications|length }}</p>
+            {% if notifications %}
+                <form method="POST" action="{{ url_for('clear_notifications') }}" style="margin-top:12px;" onsubmit="return confirm('Очистить все уведомления?');">
+                    <button type="submit" class="btn-secondary btn-small">🗑 Очистить все</button>
+                </form>
+            {% endif %}
         </div>
 
         <div class="notifications-list">
@@ -80,6 +85,9 @@
                             </div>
                         {% endif %}
                         <span class="notif-date">{{ n.created_at.strftime('%d.%m %H:%M') }}</span>
+                        <form method="POST" action="{{ url_for('delete_notification', notif_id=n.id) }}" class="notif-delete-form">
+                            <button type="submit" class="notif-delete-btn" title="Удалить">×</button>
+                        </form>
                     </div>
                 {% endfor %}
             {% else %}
