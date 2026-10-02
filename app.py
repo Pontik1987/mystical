@@ -270,7 +270,11 @@ def profile(username):
         flash('Юзер не найден')
         return redirect(url_for('index'))
 
-    posts = Post.query.filter_by(user_id=user.id).order_by(Post.created_at.desc()).all()
+    # Закреплённый пост — всегда сверху, потом остальные по дате
+    posts = Post.query.filter_by(user_id=user.id).order_by(
+        Post.is_pinned.desc(),
+        Post.created_at.desc()
+    ).all()
 
     followers_count = Follow.query.filter_by(following_id=user.id).count()
     following_count = Follow.query.filter_by(follower_id=user.id).count()
@@ -704,6 +708,32 @@ def api_chat(username):
             for m in messages_list
         ]
     }
+
+@app.route('/pin/<int:post_id>', methods=['POST'])
+def toggle_pin(post_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    post = Post.query.get_or_404(post_id)
+
+    if post.user_id != session['user_id']:
+        flash('Можно закрепить только свой пост')
+        return redirect(url_for('index'))
+
+    if post.is_pinned:
+        # Открепляем
+        post.is_pinned = False
+    else:
+        # Открепляем все свои посты
+        Post.query.filter_by(user_id=session['user_id'], is_pinned=True).update({'is_pinned': False})
+        # Закрепляем этот
+        post.is_pinned = True
+
+    db.session.commit()
+
+    next_url = request.form.get('next') or url_for('profile', username=session['username'])
+    return redirect(next_url)
+
 
 @app.route('/repost/<int:post_id>', methods=['POST'])
 def toggle_repost(post_id):
