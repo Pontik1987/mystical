@@ -31,19 +31,31 @@ def allowed_file(filename):
 
 @app.template_filter('linkify')
 def linkify_filter(text):
-    """Превращает #tag в кликабельные ссылки, экранируя HTML."""
+    """Превращает #tag и @username в кликабельные ссылки, экранируя HTML."""
     if not text:
         return ''
 
     # Экранируем HTML
     safe_text = str(escape(text))
 
-    def repl(match):
+    # Сначала хэштеги
+    def repl_tag(match):
         tag = match.group(1).lower()
         url = url_for('tag_page', tag=tag)
         return f'<a href="{url}" class="hashtag">#{match.group(1)}</a>'
 
-    return Markup(TAG_REGEX.sub(repl, safe_text))
+    safe_text = TAG_REGEX.sub(repl_tag, safe_text)
+
+    # Потом упоминания
+    def repl_mention(match):
+        username = match.group(1).lower()
+        url = url_for('profile', username=username)
+        return f'<a href="{url}" class="mention">@{match.group(1)}</a>'
+
+    mention_regex = re.compile(r'@([a-zA-Z0-9_]{1,30})')
+    safe_text = mention_regex.sub(repl_mention, safe_text)
+
+    return Markup(safe_text)
 
 
 @app.context_processor
