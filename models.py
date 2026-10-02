@@ -200,3 +200,14 @@ class PollVote(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (db.UniqueConstraint('user_id', 'option_id', name='unique_user_poll_option'),)
+
+class PinnedChat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    other_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'other_id', name='unique_pinned_chat'),)
+
+    user = db.relationship('User', foreign_keys=[user_id], backref='pinned_chats')
+    other = db.relationship('User', foreign_keys=[other_id])

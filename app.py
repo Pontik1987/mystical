@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
 import re
@@ -136,12 +136,18 @@ def inject_user():
             return False
         return Report.query.filter_by(reporter_id=current_user.id, post_id=post.id).first() is not None
 
+    def is_chat_pinned(other_user):
+        if not current_user or not other_user:
+            return False
+        return PinnedChat.query.filter_by(user_id=current_user.id, other_id=other_user.id).first() is not None
+
     return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
                 has_bookmarked=has_bookmarked, unread_count=unread_count,
                 unread_messages_count=unread_messages_count, has_reposted=has_reposted,
                 my_reaction=my_reaction, count_reaction=count_reaction,
                 is_blocked=is_blocked, blocked_ids=blocked_ids,
-                is_admin=is_admin, has_reported_post=has_reported_post)
+                is_admin=is_admin, has_reported_post=has_reported_post,
+                is_chat_pinned=is_chat_pinned)
 
 
 @app.route('/')
@@ -636,6 +642,28 @@ def clear_notifications():
     flash('Уведомления очищены')
     return redirect(url_for('notifications'))
 
+@app.route('/pin_chat/<username>', methods=['POST'])
+def toggle_pin_chat(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    other = User.query.filter_by(username=username.lower()).first()
+    if not other or other.id == session['user_id']:
+        flash('Юзер не найден')
+        return redirect(url_for('messages'))
+
+    existing = PinnedChat.query.filter_by(user_id=session['user_id'], other_id=other.id).first()
+
+    if existing:
+        db.session.delete(existing)
+    else:
+        db.session.add(PinnedChat(user_id=session['user_id'], other_id=other.id))
+
+    db.session.commit()
+
+    return redirect(url_for('messages'))
+
+
 @app.route('/messages')
 def messages():
     if 'user_id' not in session:
@@ -653,6 +681,9 @@ def messages():
         if other_id not in seen:
             seen[other_id] = msg
 
+    # Закреплённые
+    pinned_ids = [p.other_id for p in PinnedChat.query.filter_by(user_id=me).all()]
+
     dialogs = []
     for other_id, last_msg in seen.items():
         other = User.query.get(other_id)
@@ -664,12 +695,17 @@ def messages():
         dialogs.append({
             'user': other,
             'last_message': last_msg,
-            'unread': unread
+            'unread': unread,
+            'is_pinned': other.id in pinned_ids
         })
 
-    dialogs.sort(key=lambda d: d['last_message'].created_at, reverse=True)
+    # Сортировка: сначала закреплённые, потом по дате
+    dialogs.sort(key=lambda d: (not d['is_pinned'], -d['last_message'].created_at.timestamp()))
 
-    return render_template('messages.html', dialogs=dialogs)
+    pinned = [d for d in dialogs if d['is_pinned']]
+    others = [d for d in dialogs if not d['is_pinned']]
+
+    return render_template('messages.html', dialogs=dialogs, pinned=pinned, others=others)
 
 
 @app.route('/chat/<username>')

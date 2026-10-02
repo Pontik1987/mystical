@@ -1921,3 +1921,57 @@ body.dark .report-item { background: #242526; }
 body.dark .report-content { background: #3a3b3c; color: #e4e6eb; }
 body.dark .report-details { background: rgba(254, 243, 199, 0.15); color: #fcd34d; }
 body.dark .report-preview { background: #3a3b3c; color: #e4e6eb; }
+
+/* --- Pinned chats --- */
+.dialog-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+}
+
+.dialog-row:hover {
+    transform: translateX(4px);
+}
+
+.dialog-row .dialog-item {
+    flex: 1;
+    box-shadow: none;
+    background: transparent;
+}
+
+.pin-chat-form {
+    display: inline;
+    padding-right: 12px;
+}
+
+.pin-chat-btn {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 50%;
+    opacity: 0.4;
+    transition: opacity 0.2s, background 0.2s;
+}
+
+.pin-chat-btn:hover {
+    opacity: 1;
+    background: #fef3c7;
+}
+
+.pin-chat-btn.active {
+    opacity: 1;
+}
+
+body.dark .dialog-row {
+    background: #242526;
+}
+
+body.dark .pin-chat-btn:hover {
+    background: rgba(254, 243, 199, 0.15);
+}

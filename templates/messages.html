@@ -27,25 +27,46 @@
         </div>
         <div class="dialogs-list">
             {% if dialogs %}
-                {% for d in dialogs %}
-                    <a href="{{ url_for('chat', username=d.user.username) }}" class="dialog-item {% if d.unread > 0 %}unread{% endif %}">
-                        {% if d.user.avatar %}
-                            <img src="{{ url_for('static', filename='avatars/' + d.user.avatar) }}" class="dialog-avatar-img" alt="">
-                        {% else %}
-                            <div class="dialog-avatar">{{ d.user.username[0]|upper }}</div>
-                        {% endif %}
-                        <div class="dialog-body">
-                            <div class="dialog-name">{{ d.user.username }}</div>
-                            <div class="dialog-preview">{{ d.last_message.content[:50] }}</div>
-                        </div>
-                        <div class="dialog-meta">
-                            <div class="dialog-date">{{ d.last_message.created_at.strftime('%d.%m') }}</div>
-                            {% if d.unread > 0 %}
-                                <span class="dialog-unread">{{ d.unread }}</span>
+                {% macro dialog_item(d) %}
+                    <div class="dialog-row {% if d.unread > 0 %}unread{% endif %}">
+                        <a href="{{ url_for('chat', username=d.user.username) }}" class="dialog-item">
+                            {% if d.user.avatar %}
+                                <img src="{{ url_for('static', filename='avatars/' + d.user.avatar) }}" class="dialog-avatar-img" alt="">
+                            {% else %}
+                                <div class="dialog-avatar">{{ d.user.username[0]|upper }}</div>
                             {% endif %}
-                        </div>
-                    </a>
-                {% endfor %}
+                            <div class="dialog-body">
+                                <div class="dialog-name">{{ d.user.username }}</div>
+                                <div class="dialog-preview">
+                                    {% if d.last_message.sender_id == session.user_id %}Ты: {% endif %}{{ d.last_message.content[:50] }}{% if d.last_message.content|length > 50 %}...{% endif %}
+                                </div>
+                            </div>
+                            <div class="dialog-meta">
+                                <div class="dialog-date">{{ d.last_message.created_at.strftime('%d.%m') }}</div>
+                                {% if d.unread > 0 %}
+                                    <span class="dialog-unread">{{ d.unread }}</span>
+                                {% endif %}
+                            </div>
+                        </a>
+                        <form method="POST" action="{{ url_for('toggle_pin_chat', username=d.user.username) }}" class="pin-chat-form">
+                            <button type="submit" class="pin-chat-btn {% if d.is_pinned %}active{% endif %}" title="{% if d.is_pinned %}Открепить{% else %}Закрепить{% endif %}">📌</button>
+                        </form>
+                    </div>
+                {% endmacro %}
+
+                {% if pinned %}
+                    <h3 class="section-title">📌 Закреплённые</h3>
+                    {% for d in pinned %}
+                        {{ dialog_item(d) }}
+                    {% endfor %}
+                {% endif %}
+
+                {% if others %}
+                    {% if pinned %}<h3 class="section-title" style="margin-top:20px;">💬 Остальные</h3>{% endif %}
+                    {% for d in others %}
+                        {{ dialog_item(d) }}
+                    {% endfor %}
+                {% endif %}
             {% else %}
                 <p class="empty">Пока нет сообщений.</p>
             {% endif %}
