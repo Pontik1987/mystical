@@ -2550,3 +2550,61 @@ body.dark .story-name {
 body.dark .story-add-label {
     color: #b0b3b8;
 }
+
+/* --- Video in posts --- */
+.video-upload {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+}
+
+.video-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #f3e8ff;
+    color: #7c3aed;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.video-label:hover {
+    background: #e9d5ff;
+}
+
+.video-filename {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.post-video {
+    margin-top: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+}
+
+.post-video-player {
+    width: 100%;
+    max-height: 500px;
+    display: block;
+    border-radius: 12px;
+}
+
+body.dark .video-label {
+    background: rgba(167, 139, 250, 0.15);
+    color: #a78bfa;
+}
+body.dark .video-filename {
+    color: #b0b3b8;
+}

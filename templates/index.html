@@ -81,8 +81,16 @@
         </div>
 
         <div class="post-form">
-            <form method="POST" action="{{ url_for('create_post') }}">
+            <form method="POST" action="{{ url_for('create_post') }}" enctype="multipart/form-data">
                 <textarea name="content" placeholder="Что нового? Используй #хэштеги и @упоминания!" required></textarea>
+
+                <div class="video-upload">
+                    <label class="video-label">
+                        🎬 Добавить видео
+                        <input type="file" name="video" id="video-input" accept="video/mp4,video/webm,video/quicktime" style="display:none;">
+                    </label>
+                    <span class="video-filename" id="video-filename"></span>
+                </div>
 
                 <div class="poll-toggle-wrap">
                     <label class="poll-toggle-label">
@@ -119,6 +127,12 @@
         </div>
     </main>
 <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <script>
+document.getElementById('video-input').addEventListener('change', function() {
+    var name = this.files[0] ? this.files[0].name : '';
+    document.getElementById('video-filename').textContent = name;
+});
+</script>
     <script src="{{ url_for('static', filename='pwa.js') }}"></script>
 </body>
 </html>

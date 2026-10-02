@@ -11,6 +11,15 @@
     </div>
     <div class="post-content">{{ post.content|linkify }}</div>
 
+    {% if post.video %}
+        <div class="post-video">
+            <video controls preload="metadata" class="post-video-player">
+                <source src="{{ url_for('static', filename='videos/' + post.video) }}">
+                Твой браузер не поддерживает видео.
+            </video>
+        </div>
+    {% endif %}
+
     {% if post.poll %}
         <div class="poll-box">
             <div class="poll-question">📊 {{ post.poll.question }}</div>

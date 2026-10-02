@@ -20,7 +20,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 AVATAR_FOLDER = os.path.join(basedir, 'static', 'avatars')
 STORIES_FOLDER = os.path.join(basedir, 'static', 'stories')
 os.makedirs(STORIES_FOLDER, exist_ok=True)
+VIDEOS_FOLDER = os.path.join(basedir, 'static', 'videos')
+os.makedirs(VIDEOS_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
 db.init_app(app)
@@ -30,6 +33,10 @@ TAG_REGEX = re.compile(r'#([a-zA-Zа-яА-Я0-9_]{1,50})')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def allowed_video(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
 
 
 @app.template_filter('linkify')
@@ -318,6 +325,28 @@ def create_post():
 
     if content:
         post = Post(content=content, user_id=session['user_id'])
+
+        # Обработка видео
+        video_file = request.files.get('video')
+        if video_file and video_file.filename:
+            if allowed_video(video_file.filename):
+                # Проверяем размер (50 МБ)
+                video_file.seek(0, 2)  # в конец
+                size = video_file.tell()
+                video_file.seek(0)
+
+                if size > 50 * 1024 * 1024:
+                    flash('Видео — максимум 50 МБ')
+                    return redirect(url_for('index'))
+
+                ext = video_file.filename.rsplit('.', 1)[1].lower()
+                v_filename = f"video_{session['user_id']}_{int(datetime.utcnow().timestamp())}.{ext}"
+                video_file.save(os.path.join(VIDEOS_FOLDER, v_filename))
+                post.video = v_filename
+            else:
+                flash('Видео: только mp4, webm, mov')
+                return redirect(url_for('index'))
+
         db.session.add(post)
         db.session.flush()  # получаем post.id
 
