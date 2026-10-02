@@ -2051,3 +2051,104 @@ body.dark .top-post {
 body.dark .stat-label { color: #b0b3b8; }
 body.dark .top-post-content { color: #e4e6eb; }
 body.dark .top-post-stats { color: #b0b3b8; }
+
+/* --- Accent colors --- */
+.profile-card.accent-purple { --accent: #7c3aed; --accent-light: #ede9fe; }
+.profile-card.accent-blue { --accent: #2563eb; --accent-light: #dbeafe; }
+.profile-card.accent-green { --accent: #16a34a; --accent-light: #dcfce7; }
+.profile-card.accent-orange { --accent: #ea580c; --accent-light: #ffedd5; }
+.profile-card.accent-red { --accent: #dc2626; --accent-light: #fee2e2; }
+.profile-card.accent-dark { --accent: #374151; --accent-light: #e5e7eb; }
+
+.profile-card .profile-name {
+    color: var(--accent, #7c3aed);
+}
+
+.profile-card .profile-avatar {
+    background: var(--accent, #7c3aed);
+}
+
+.profile-card .social-num {
+    color: var(--accent, #7c3aed);
+}
+
+.profile-card .profile-website {
+    color: var(--accent, #7c3aed);
+}
+
+.profile-card.accent-dark .profile-name,
+.profile-card.accent-dark .social-num,
+.profile-card.accent-dark .profile-website {
+    color: #374151;
+}
+
+body.dark .profile-card.accent-dark .profile-name,
+body.dark .profile-card.accent-dark .social-num,
+body.dark .profile-card.accent-dark .profile-website {
+    color: #9ca3af;
+}
+
+/* --- Accent palette (edit profile) --- */
+.accent-palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.accent-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.accent-option:hover {
+    border-color: #7c3aed;
+    background: #faf5ff;
+}
+
+.accent-option input[type="radio"] {
+    display: none;
+}
+
+.accent-option input[type="radio"]:checked + .accent-swatch {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
+}
+
+.accent-option:has(input:checked) {
+    border-color: #7c3aed;
+    background: #faf5ff;
+}
+
+.accent-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: box-shadow 0.2s;
+}
+
+.accent-label {
+    color: #333;
+}
+
+body.dark .accent-option {
+    border-color: #3a3b3c;
+    color: #e4e6eb;
+}
+
+body.dark .accent-option:hover,
+body.dark .accent-option:has(input:checked) {
+    border-color: #a78bfa;
+    background: rgba(167, 139, 250, 0.1);
+}
+
+body.dark .accent-label {
+    color: #e4e6eb;
+}

@@ -48,6 +48,26 @@
                 <input type="url" name="website" class="form-input" maxlength="200"
                        placeholder="https://..." value="{{ user.website or '' }}">
 
+                <label class="form-label">Акцентный цвет профиля</label>
+                <div class="accent-palette">
+                    {% set colors = [
+                        ('purple', '#7c3aed', '💜 Фиолетовый'),
+                        ('blue', '#2563eb', '💙 Синий'),
+                        ('green', '#16a34a', '💚 Зелёный'),
+                        ('orange', '#ea580c', '🧡 Оранжевый'),
+                        ('red', '#dc2626', '❤️ Красный'),
+                        ('dark', '#374151', '🖤 Тёмный')
+                    ] %}
+                    {% for key, hex, label in colors %}
+                        <label class="accent-option">
+                            <input type="radio" name="accent_color" value="{{ key }}"
+                                   {% if user.accent_color == key or (not user.accent_color and key == 'purple') %}checked{% endif %}>
+                            <span class="accent-swatch" style="background: {{ hex }};"></span>
+                            <span class="accent-label">{{ label }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+
                 <div class="edit-actions">
                     <button type="submit" class="btn-primary">Сохранить</button>
                     <a href="{{ url_for('profile', username=user.username) }}" class="btn-secondary">Отмена</a>

@@ -30,7 +30,7 @@
     </header>
 
     <main class="feed-container">
-        <div class="profile-card">
+        <div class="profile-card {{ accent_class(user) }}">
             {% if user.avatar %}
                 <img src="{{ url_for('static', filename='avatars/' + user.avatar) }}" class="profile-avatar-img" alt="avatar">
             {% else %}

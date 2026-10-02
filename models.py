@@ -96,6 +96,7 @@ class User(db.Model):
     bio = db.Column(db.String(300), nullable=True)
     city = db.Column(db.String(100), nullable=True)
     website = db.Column(db.String(200), nullable=True)
+    accent_color = db.Column(db.String(20), default='purple')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     posts = db.relationship('Post', backref='author', lazy=True)

@@ -141,13 +141,18 @@ def inject_user():
             return False
         return PinnedChat.query.filter_by(user_id=current_user.id, other_id=other_user.id).first() is not None
 
+    def accent_class(user):
+        if not user or not user.accent_color:
+            return 'accent-purple'
+        return f'accent-{user.accent_color}'
+
     return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
                 has_bookmarked=has_bookmarked, unread_count=unread_count,
                 unread_messages_count=unread_messages_count, has_reposted=has_reposted,
                 my_reaction=my_reaction, count_reaction=count_reaction,
                 is_blocked=is_blocked, blocked_ids=blocked_ids,
                 is_admin=is_admin, has_reported_post=has_reported_post,
-                is_chat_pinned=is_chat_pinned)
+                is_chat_pinned=is_chat_pinned, accent_class=accent_class)
 
 
 @app.route('/')
@@ -498,14 +503,21 @@ def edit_profile():
         bio = request.form.get('bio', '').strip()
         city = request.form.get('city', '').strip()
         website = request.form.get('website', '').strip()
+        accent = request.form.get('accent_color', 'purple').strip()
 
         if len(bio) > 300:
             flash('Bio слишком длинное (макс 300 символов)')
             return redirect(url_for('edit_profile'))
 
+        # Белый список цветов
+        allowed_colors = ['purple', 'blue', 'green', 'orange', 'red', 'dark']
+        if accent not in allowed_colors:
+            accent = 'purple'
+
         user.bio = bio or None
         user.city = city or None
         user.website = website or None
+        user.accent_color = accent
         db.session.commit()
 
         flash('Профиль обновлён!')
