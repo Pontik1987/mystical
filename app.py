@@ -96,15 +96,30 @@ def index():
         return redirect(url_for('login'))
 
     tab = request.args.get('tab', 'all')
+    sort = request.args.get('sort', 'new')
 
+    # Базовая выборка
     if tab == 'following':
         following_ids = [f.following_id for f in Follow.query.filter_by(follower_id=session['user_id']).all()]
         following_ids.append(session['user_id'])
-        posts = Post.query.filter(Post.user_id.in_(following_ids)).order_by(Post.created_at.desc()).all()
+        query = Post.query.filter(Post.user_id.in_(following_ids))
     else:
-        posts = Post.query.order_by(Post.created_at.desc()).all()
+        query = Post.query
 
-    return render_template('index.html', posts=posts, tab=tab)
+    # Сортировка
+    if sort == 'popular':
+        # По лайкам (много лайков — сверху)
+        posts = query.all()
+        posts.sort(key=lambda p: len(p.likes), reverse=True)
+    elif sort == 'discussed':
+        # По комментариям
+        posts = query.all()
+        posts.sort(key=lambda p: len(p.comments), reverse=True)
+    else:
+        # По дате (новые сверху)
+        posts = query.order_by(Post.created_at.desc()).all()
+
+    return render_template('index.html', posts=posts, tab=tab, sort=sort)
 
 
 @app.route('/search')

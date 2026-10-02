@@ -34,11 +34,23 @@
 
     <main class="feed-container">
         <div class="feed-tabs">
-            <a href="{{ url_for('index', tab='all') }}" class="tab {% if tab == 'all' %}active{% endif %}">
+            <a href="{{ url_for('index', tab='all', sort=sort) }}" class="tab {% if tab == 'all' %}active{% endif %}">
                 🌍 Все
             </a>
-            <a href="{{ url_for('index', tab='following') }}" class="tab {% if tab == 'following' %}active{% endif %}">
+            <a href="{{ url_for('index', tab='following', sort=sort) }}" class="tab {% if tab == 'following' %}active{% endif %}">
                 👥 Подписки
+            </a>
+        </div>
+
+        <div class="sort-tabs">
+            <a href="{{ url_for('index', tab=tab, sort='new') }}" class="sort-tab {% if sort == 'new' or not sort %}active{% endif %}">
+                🕒 Новые
+            </a>
+            <a href="{{ url_for('index', tab=tab, sort='popular') }}" class="sort-tab {% if sort == 'popular' %}active{% endif %}">
+                🔥 Популярные
+            </a>
+            <a href="{{ url_for('index', tab=tab, sort='discussed') }}" class="sort-tab {% if sort == 'discussed' %}active{% endif %}">
+                💬 Обсуждаемые
             </a>
         </div>
 
