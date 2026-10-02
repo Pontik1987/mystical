@@ -227,14 +227,57 @@ def search():
         return redirect(url_for('login'))
 
     q = request.args.get('q', '').strip()
+    type_filter = request.args.get('type', 'all')       # all / users / posts
+    date_filter = request.args.get('date', 'all')       # all / day / week / month
+    sort_filter = request.args.get('sort', 'new')       # new / popular
 
     if not q:
-        return render_template('search.html', query='', users=[], posts=[])
+        return render_template('search.html', query='',
+                               users=[], posts=[],
+                               type_filter=type_filter,
+                               date_filter=date_filter,
+                               sort_filter=sort_filter)
 
-    users = User.query.filter(User.username.ilike(f'%{q}%')).order_by(User.username).all()
-    posts = Post.query.filter(Post.content.ilike(f'%{q}%')).order_by(Post.created_at.desc()).all()
+    # Фильтр по дате
+    date_threshold = None
+    now = datetime.utcnow()
+    if date_filter == 'day':
+        date_threshold = now - timedelta(days=1)
+    elif date_filter == 'week':
+        date_threshold = now - timedelta(days=7)
+    elif date_filter == 'month':
+        date_threshold = now - timedelta(days=30)
 
-    return render_template('search.html', query=q, users=users, posts=posts)
+    # Юзеры
+    users = []
+    if type_filter in ('all', 'users'):
+        users = User.query.filter(User.username.ilike(f'%{q}%')).order_by(User.username).all()
+
+    # Посты
+    posts = []
+    if type_filter in ('all', 'posts'):
+        query = Post.query.filter(Post.content.ilike(f'%{q}%'))
+
+        if date_threshold:
+            query = query.filter(Post.created_at >= date_threshold)
+
+        posts = query.all()
+
+        # Сортировка
+        if sort_filter == 'popular':
+            posts.sort(key=lambda p: (len(p.likes), p.created_at), reverse=True)
+        else:
+            posts.sort(key=lambda p: p.created_at, reverse=True)
+
+    return render_template(
+        'search.html',
+        query=q,
+        users=users,
+        posts=posts,
+        type_filter=type_filter,
+        date_filter=date_filter,
+        sort_filter=sort_filter
+    )
 
 
 @app.route('/tag/<tag>')

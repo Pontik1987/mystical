@@ -24,6 +24,43 @@
 
     <main class="feed-container">
         {% if query %}
+            <!-- Фильтры поиска -->
+            <div class="search-filters">
+                <form method="GET" action="{{ url_for('search') }}" class="filters-form">
+                    <input type="hidden" name="q" value="{{ query }}">
+
+                    <div class="filter-row">
+                        <span class="filter-label">🎯 Тип:</span>
+                        <a href="{{ url_for('search', q=query, type='all', date=date_filter, sort=sort_filter) }}"
+                           class="filter-btn {% if type_filter == 'all' or not type_filter %}active{% endif %}">Все</a>
+                        <a href="{{ url_for('search', q=query, type='users', date=date_filter, sort=sort_filter) }}"
+                           class="filter-btn {% if type_filter == 'users' %}active{% endif %}">👤 Юзеры</a>
+                        <a href="{{ url_for('search', q=query, type='posts', date=date_filter, sort=sort_filter) }}"
+                           class="filter-btn {% if type_filter == 'posts' %}active{% endif %}">📝 Посты</a>
+                    </div>
+
+                    <div class="filter-row">
+                        <span class="filter-label">🕒 Дата:</span>
+                        <a href="{{ url_for('search', q=query, type=type_filter, date='all', sort=sort_filter) }}"
+                           class="filter-btn {% if date_filter == 'all' or not date_filter %}active{% endif %}">Всё</a>
+                        <a href="{{ url_for('search', q=query, type=type_filter, date='day', sort=sort_filter) }}"
+                           class="filter-btn {% if date_filter == 'day' %}active{% endif %}">День</a>
+                        <a href="{{ url_for('search', q=query, type=type_filter, date='week', sort=sort_filter) }}"
+                           class="filter-btn {% if date_filter == 'week' %}active{% endif %}">Неделя</a>
+                        <a href="{{ url_for('search', q=query, type=type_filter, date='month', sort=sort_filter) }}"
+                           class="filter-btn {% if date_filter == 'month' %}active{% endif %}">Месяц</a>
+                    </div>
+
+                    <div class="filter-row">
+                        <span class="filter-label">📊 Сорт:</span>
+                        <a href="{{ url_for('search', q=query, type=type_filter, date=date_filter, sort='new') }}"
+                           class="filter-btn {% if sort_filter == 'new' or not sort_filter %}active{% endif %}">Новые</a>
+                        <a href="{{ url_for('search', q=query, type=type_filter, date=date_filter, sort='popular') }}"
+                           class="filter-btn {% if sort_filter == 'popular' %}active{% endif %}">🔥 Популярные</a>
+                    </div>
+                </form>
+            </div>
+
             <h2 class="search-title">Результаты по запросу: <span class="search-highlight">«{{ query }}»</span></h2>
 
             <section class="search-section">
