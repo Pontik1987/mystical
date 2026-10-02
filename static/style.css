@@ -1820,3 +1820,104 @@ body.dark .poll-toggle-label { color: #b0b3b8; }
 
 /* --- Blocked --- */
 /* Кнопки уже используют .btn-secondary и .btn-primary */
+
+/* --- Report button --- */
+.report-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 20px;
+    opacity: 0.5;
+    transition: background 0.2s, opacity 0.2s;
+    text-decoration: none;
+}
+
+.report-btn:hover {
+    background: #fee2e2;
+    opacity: 1;
+}
+
+.report-btn.reported {
+    opacity: 1;
+    cursor: default;
+}
+
+/* --- Report item (admin) --- */
+.report-item {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border-left: 4px solid #e11d48;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.report-reason {
+    font-weight: 700;
+    color: #e11d48;
+}
+
+.report-date {
+    font-size: 12px;
+    color: #999;
+}
+
+.report-body {
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.report-meta {
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.report-meta a {
+    color: #7c3aed;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.report-content {
+    padding: 10px 14px;
+    background: #f7f7f8;
+    border-radius: 8px;
+    color: #333;
+    font-style: italic;
+}
+
+.report-details {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #92400e;
+}
+
+.report-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.report-preview {
+    padding: 12px 16px;
+    background: #f7f7f8;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #333;
+}
+
+body.dark .report-item { background: #242526; }
+body.dark .report-content { background: #3a3b3c; color: #e4e6eb; }
+body.dark .report-details { background: rgba(254, 243, 199, 0.15); color: #fcd34d; }
+body.dark .report-preview { background: #3a3b3c; color: #e4e6eb; }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Жалоба — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="edit-card">
+            <h2>⚠️ Жалоба на {% if post %}пост{% else %}комментарий{% endif %}</h2>
+
+            {% if post %}
+                <div class="report-preview">
+                    <strong>{{ post.author.username }}:</strong> {{ post.content[:200] }}
+                </div>
+            {% elif comment %}
+                <div class="report-preview">
+                    <strong>{{ comment.author.username }}:</strong> {{ comment.content[:200] }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                <label class="form-label">Причина жалобы</label>
+                <select name="reason" class="form-input" required>
+                    <option value="spam">Спам</option>
+                    <option value="abuse">Оскорбления</option>
+                    <option value="fake">Ложная информация</option>
+                    <option value="other">Другое</option>
+                </select>
+
+                <label class="form-label">Дополнительно (необязательно)</label>
+                <textarea name="details" class="form-textarea" maxlength="500" placeholder="Опиши подробнее..."></textarea>
+
+                <div class="edit-actions">
+                    <button type="submit" class="btn-primary">Отправить жалобу</button>
+                    <a href="{{ url_for('index') }}" class="btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

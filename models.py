@@ -26,6 +26,21 @@ class Block(db.Model):
     blocked = db.relationship('User', foreign_keys=[blocked_id], backref='blocked_by')
 
 
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
+    reason = db.Column(db.String(50), nullable=False)  # spam, abuse, fake, other
+    details = db.Column(db.Text, nullable=True)
+    is_resolved = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    reporter = db.relationship('User', foreign_keys=[reporter_id], backref='reports_made')
+    post = db.relationship('Post', backref='reports')
+    comment = db.relationship('Comment', backref='reports')
+
+
 class Bookmark(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

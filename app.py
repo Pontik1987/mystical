@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report
 from werkzeug.utils import secure_filename
 from markupsafe import Markup, escape
 import re
@@ -126,11 +126,22 @@ def inject_user():
         blocked_me = [b.user_id for b in Block.query.filter_by(blocked_id=current_user.id).all()]
         return list(set(my_blocks + blocked_me))
 
+    def is_admin():
+        if not current_user:
+            return False
+        return current_user.id == 1  # первый юзер — админ
+
+    def has_reported_post(post):
+        if not current_user:
+            return False
+        return Report.query.filter_by(reporter_id=current_user.id, post_id=post.id).first() is not None
+
     return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
                 has_bookmarked=has_bookmarked, unread_count=unread_count,
                 unread_messages_count=unread_messages_count, has_reposted=has_reposted,
                 my_reaction=my_reaction, count_reaction=count_reaction,
-                is_blocked=is_blocked, blocked_ids=blocked_ids)
+                is_blocked=is_blocked, blocked_ids=blocked_ids,
+                is_admin=is_admin, has_reported_post=has_reported_post)
 
 
 @app.route('/')
@@ -814,6 +825,123 @@ def toggle_pin(post_id):
 
     next_url = request.form.get('next') or url_for('profile', username=session['username'])
     return redirect(next_url)
+
+
+@app.route('/report/post/<int:post_id>', methods=['GET', 'POST'])
+def report_post(post_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    post = Post.query.get_or_404(post_id)
+
+    if post.user_id == session['user_id']:
+        flash('Нельзя пожаловаться на свой пост')
+        return redirect(url_for('index'))
+
+    existing = Report.query.filter_by(reporter_id=session['user_id'], post_id=post.id).first()
+    if existing:
+        flash('Ты уже пожаловался на этот пост')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        reason = request.form.get('reason', 'other')
+        details = request.form.get('details', '').strip()
+
+        report = Report(
+            reporter_id=session['user_id'],
+            post_id=post.id,
+            reason=reason,
+            details=details or None
+        )
+        db.session.add(report)
+        db.session.commit()
+
+        flash('Жалоба отправлена')
+        return redirect(url_for('index'))
+
+    return render_template('report.html', post=post, comment=None)
+
+
+@app.route('/report/comment/<int:comment_id>', methods=['GET', 'POST'])
+def report_comment(comment_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    comment = Comment.query.get_or_404(comment_id)
+
+    if comment.user_id == session['user_id']:
+        flash('Нельзя пожаловаться на свой комментарий')
+        return redirect(url_for('index'))
+
+    existing = Report.query.filter_by(reporter_id=session['user_id'], comment_id=comment.id).first()
+    if existing:
+        flash('Ты уже пожаловался на этот комментарий')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        reason = request.form.get('reason', 'other')
+        details = request.form.get('details', '').strip()
+
+        report = Report(
+            reporter_id=session['user_id'],
+            comment_id=comment.id,
+            reason=reason,
+            details=details or None
+        )
+        db.session.add(report)
+        db.session.commit()
+
+        flash('Жалоба отправлена')
+        return redirect(url_for('index'))
+
+    return render_template('report.html', post=None, comment=comment)
+
+
+@app.route('/admin/reports')
+def admin_reports():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if session['user_id'] != 1:
+        flash('Доступ только для админа')
+        return redirect(url_for('index'))
+
+    reports = Report.query.filter_by(is_resolved=False).order_by(Report.created_at.desc()).all()
+    return render_template('admin_reports.html', reports=reports)
+
+
+@app.route('/admin/report/<int:report_id>/dismiss', methods=['POST'])
+def dismiss_report(report_id):
+    if 'user_id' not in session or session['user_id'] != 1:
+        return redirect(url_for('index'))
+
+    report = Report.query.get_or_404(report_id)
+    report.is_resolved = True
+    db.session.commit()
+
+    flash('Жалоба отклонена')
+    return redirect(url_for('admin_reports'))
+
+
+@app.route('/admin/report/<int:report_id>/delete_post', methods=['POST'])
+def admin_delete_post(report_id):
+    if 'user_id' not in session or session['user_id'] != 1:
+        return redirect(url_for('index'))
+
+    report = Report.query.get_or_404(report_id)
+
+    if report.post:
+        db.session.delete(report.post)
+        report.is_resolved = True
+        db.session.commit()
+        flash('Пост удалён, жалоба закрыта')
+    elif report.comment:
+        db.session.delete(report.comment)
+        report.is_resolved = True
+        db.session.commit()
+        flash('Комментарий удалён, жалоба закрыта')
+
+    return redirect(url_for('admin_reports'))
 
 
 @app.route('/block/<username>', methods=['POST'])

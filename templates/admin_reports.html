@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Жалобы (админ) — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="tag-header">
+            <h2 class="tag-title">🛡 Админ-панель: жалобы</h2>
+            <p class="tag-count">Активных жалоб: {{ reports|length }}</p>
+        </div>
+
+        {% if reports %}
+            {% for r in reports %}
+                <div class="report-item">
+                    <div class="report-header">
+                        <span class="report-reason">
+                            {% if r.reason == 'spam' %}📢 Спам
+                            {% elif r.reason == 'abuse' %}🤬 Оскорбления
+                            {% elif r.reason == 'fake' %}🎭 Ложная информация
+                            {% else %}❓ Другое
+                            {% endif %}
+                        </span>
+                        <span class="report-date">{{ r.created_at.strftime('%d.%m %H:%M') }}</span>
+                    </div>
+                    <div class="report-body">
+                        <div class="report-meta">
+                            <strong>От:</strong> <a href="{{ url_for('profile', username=r.reporter.username) }}">{{ r.reporter.username }}</a>
+                            <br>
+                            {% if r.post %}
+                                <strong>Пост:</strong> <a href="{{ url_for('profile', username=r.post.author.username) }}">{{ r.post.author.username }}</a>
+                            {% elif r.comment %}
+                                <strong>Комментарий:</strong> <a href="{{ url_for('profile', username=r.comment.author.username) }}">{{ r.comment.author.username }}</a>
+                            {% endif %}
+                        </div>
+                        <div class="report-content">
+                            {% if r.post %}{{ r.post.content[:300] }}
+                            {% elif r.comment %}{{ r.comment.content[:300] }}
+                            {% endif %}
+                        </div>
+                        {% if r.details %}
+                            <div class="report-details">💬 {{ r.details }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="report-actions">
+                        <form method="POST" action="{{ url_for('admin_delete_post', report_id=r.id) }}" style="display:inline;" onsubmit="return confirm('Удалить контент?');">
+                            <button type="submit" class="btn-secondary btn-small">🗑 Удалить контент</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('dismiss_report', report_id=r.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-secondary btn-small">✅ Отклонить</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty">Жалоб нет.</p>
+        {% endif %}
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>
