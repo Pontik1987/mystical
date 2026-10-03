@@ -12,3 +12,6 @@ static/avatars/
 static/files/
 static/videos/
 static/stories/
+
+# Пользовательские аудио (не храним в Git)
+static/audio/
