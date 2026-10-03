@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat, GroupChat, GroupMember, GroupMessage, Story, StoryView
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat, GroupChat, GroupMember, GroupMessage, Story, StoryView, Clip, ClipLike, ClipComment
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from markupsafe import Markup, escape
@@ -24,6 +24,8 @@ VIDEOS_FOLDER = os.path.join(basedir, 'static', 'videos')
 os.makedirs(VIDEOS_FOLDER, exist_ok=True)
 FILES_FOLDER = os.path.join(basedir, 'static', 'files')
 os.makedirs(FILES_FOLDER, exist_ok=True)
+CLIPS_FOLDER = os.path.join(basedir, 'static', 'clips')
+os.makedirs(CLIPS_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
 ALLOWED_FILE_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt', 'zip', 'rar', 'xls', 'xlsx', 'ppt', 'pptx', 'csv'}
@@ -1676,6 +1678,104 @@ def delete_story(story_id):
 
     flash('История удалена')
     return redirect(url_for('index'))
+
+
+@app.route('/clips')
+def clips():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    clips_list = Clip.query.order_by(Clip.created_at.desc()).all()
+    return render_template('clips.html', clips=clips_list)
+
+
+@app.route('/clips/create', methods=['GET', 'POST'])
+def create_clip():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        video = request.files.get('video')
+        caption = request.form.get('caption', '').strip()
+        music = request.form.get('music', '').strip()
+
+        if not video or video.filename == '':
+            flash('Выбери видео')
+            return redirect(url_for('create_clip'))
+
+        if not allowed_video(video.filename):
+            flash('Видео: mp4, webm, mov')
+            return redirect(url_for('create_clip'))
+
+        video.seek(0, 2)
+        size = video.tell()
+        video.seek(0)
+
+        if size > 100 * 1024 * 1024:
+            flash('Видео — максимум 100 МБ')
+            return redirect(url_for('create_clip'))
+
+        ext = video.filename.rsplit('.', 1)[1].lower()
+        filename = f"clip_{session['user_id']}_{int(datetime.utcnow().timestamp())}.{ext}"
+        video.save(os.path.join(CLIPS_FOLDER, filename))
+
+        clip = Clip(
+            video=filename,
+            caption=caption[:300] if caption else None,
+            music=music[:200] if music else None,
+            user_id=session['user_id']
+        )
+        db.session.add(clip)
+        db.session.commit()
+
+        flash('Клип опубликован!')
+        return redirect(url_for('clips'))
+
+    return render_template('create_clip.html')
+
+
+@app.route('/clip/<int:clip_id>')
+def clip_view(clip_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    clip = Clip.query.get_or_404(clip_id)
+    clip.views = (clip.views or 0) + 1
+    db.session.commit()
+
+    return render_template('clip_view.html', clip=clip)
+
+
+@app.route('/clip/<int:clip_id>/like', methods=['POST'])
+def clip_like(clip_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    clip = Clip.query.get_or_404(clip_id)
+    existing = ClipLike.query.filter_by(user_id=session['user_id'], clip_id=clip.id).first()
+
+    if existing:
+        db.session.delete(existing)
+    else:
+        db.session.add(ClipLike(user_id=session['user_id'], clip_id=clip.id))
+
+    db.session.commit()
+    return redirect(url_for('clips'))
+
+
+@app.route('/clip/<int:clip_id>/comment', methods=['POST'])
+def clip_comment(clip_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    clip = Clip.query.get_or_404(clip_id)
+    content = request.form.get('content', '').strip()
+
+    if content and len(content) <= 300:
+        db.session.add(ClipComment(content=content, user_id=session['user_id'], clip_id=clip.id))
+        db.session.commit()
+
+    return redirect(url_for('clips'))
 
 
 with app.app_context():

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Клипы — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="clips-body">
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('create_clip') }}" class="user-link" title="Создать клип">➕</a>
+            <a href="{{ url_for('index') }}" class="user-link" title="Лента">🏠</a>
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">
+                Привет, {{ session.username }}
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="clips-container">
+        {% if clips %}
+            {% for clip in clips %}
+                <div class="clip-card" id="clip-{{ clip.id }}">
+                    <video class="clip-video" src="{{ url_for('static', filename='clips/' + clip.video) }}" 
+                           loop muted playsinline preload="metadata"></video>
+
+                    <div class="clip-overlay">
+                        <div class="clip-author">
+                            {% if clip.author.avatar %}
+                                <img src="{{ url_for('static', filename='avatars/' + clip.author.avatar) }}" class="clip-avatar" alt="">
+                            {% else %}
+                                <div class="clip-avatar-text">{{ clip.author.username[0]|upper }}</div>
+                            {% endif %}
+                            <a href="{{ url_for('profile', username=clip.author.username) }}" class="clip-author-name">
+                                @{{ clip.author.username }}
+                            </a>
+                        </div>
+
+                        {% if clip.caption %}
+                            <div class="clip-caption">{{ clip.caption }}</div>
+                        {% endif %}
+
+                        {% if clip.music %}
+                            <div class="clip-music">♪ {{ clip.music }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="clip-actions">
+                        <form method="POST" action="{{ url_for('clip_like', clip_id=clip.id) }}" class="clip-action-form">
+                            <button type="submit" class="clip-action-btn {% if clip.likes|selectattr('user_id', 'equalto', session.user_id)|list %}active{% endif %}">
+                                <span class="clip-action-icon">
+                                    {% if clip.likes|selectattr('user_id', 'equalto', session.user_id)|list %}❤️{% else %}🤍{% endif %}
+                                </span>
+                                <span class="clip-action-count">{{ clip.likes|length }}</span>
+                            </button>
+                        </form>
+
+                        <button type="button" class="clip-action-btn" onclick="toggleComments({{ clip.id }})">
+                            <span class="clip-action-icon">💬</span>
+                            <span class="clip-action-count">{{ clip.comments|length }}</span>
+                        </button>
+
+                        <div class="clip-action-btn" style="cursor:default;">
+                            <span class="clip-action-icon">👁</span>
+                            <span class="clip-action-count">{{ clip.views }}</span>
+                        </div>
+                    </div>
+
+                    <div class="clip-comments" id="comments-{{ clip.id }}" style="display:none;">
+                        <div class="clip-comments-list">
+                            {% for c in clip.comments %}
+                                <div class="clip-comment">
+                                    <strong>{{ c.user.username }}</strong> {{ c.content }}
+                                </div>
+                            {% endfor %}
+                            {% if not clip.comments %}
+                                <p style="color:#999;font-size:12px;">Пока нет комментариев</p>
+                            {% endif %}
+                        </div>
+                        <form method="POST" action="{{ url_for('clip_comment', clip_id=clip.id) }}" class="clip-comment-form">
+                            <input type="text" name="content" placeholder="Комментарий..." maxlength="300" required>
+                            <button type="submit">→</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="clips-empty">
+                <h2>🎬 Пока нет клипов</h2>
+                <p>Стань первым — загрузи свой клип!</p>
+                <a href="{{ url_for('create_clip') }}" class="btn-primary">➕ Создать клип</a>
+            </div>
+        {% endif %}
+    </main>
+
+    <script>
+        // Автоплей при скролле
+        var videos = document.querySelectorAll('.clip-video');
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.play().catch(function(){});
+                } else {
+                    entry.target.pause();
+                }
+            });
+        }, { threshold: 0.6 });
+        videos.forEach(function(v) { observer.observe(v); });
+
+        // Клик по видео — play/pause
+        videos.forEach(function(v) {
+            v.addEventListener('click', function() {
+                if (this.paused) this.play(); else this.pause();
+            });
+        });
+
+        function toggleComments(id) {
+            var el = document.getElementById('comments-' + id);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

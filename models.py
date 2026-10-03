@@ -280,3 +280,38 @@ class StoryView(db.Model):
     __table_args__ = (db.UniqueConstraint('user_id', 'story_id', name='unique_story_view'),)
 
     user = db.relationship('User', backref='story_views')
+
+class Clip(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    video = db.Column(db.String(200), nullable=False)
+    caption = db.Column(db.String(300), nullable=True)
+    music = db.Column(db.String(200), nullable=True)
+    views = db.Column(db.Integer, default=0)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    author = db.relationship('User', backref='clips')
+    likes = db.relationship('ClipLike', backref='clip', lazy=True, cascade='all, delete-orphan')
+    comments = db.relationship('ClipComment', backref='clip', lazy=True, cascade='all, delete-orphan',
+                               order_by='ClipComment.created_at')
+
+
+class ClipLike(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    clip_id = db.Column(db.Integer, db.ForeignKey('clip.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'clip_id', name='unique_clip_like'),)
+
+    user = db.relationship('User', backref='clip_likes')
+
+
+class ClipComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    clip_id = db.Column(db.Integer, db.ForeignKey('clip.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='clip_comments')
