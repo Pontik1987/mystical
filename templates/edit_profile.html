@@ -49,6 +49,19 @@
                        placeholder="https://..." value="{{ user.website or '' }}">
 
                 <label class="form-label">Акцентный цвет профиля</label>
+                <label class="form-label" style="margin-top:20px;">🔒 Личное пространство</label>
+                <label class="privacy-toggle">
+                    <input type="checkbox" name="is_private" {% if user.is_private %}checked{% endif %}>
+                    <div class="privacy-toggle-content">
+                        <div class="privacy-toggle-title">Включить приватность</div>
+                        <div class="privacy-toggle-desc">
+                            Только подписчики смогут видеть твои посты и писать тебе.
+                            По умолчанию профиль открыт.
+                        </div>
+                    </div>
+                </label>
+
+                <label class="form-label" style="margin-top:20px;">Акцентный цвет профиля</label>
                 <div class="accent-palette">
                     {% set colors = [
                         ('purple', '#7c3aed', '💜 Фиолетовый'),

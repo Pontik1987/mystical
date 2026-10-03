@@ -165,13 +165,41 @@ def inject_user():
             return 'accent-purple'
         return f'accent-{user.accent_color}'
 
+    def can_view_profile(target_user):
+        """Может ли текущий юзер видеть посты target_user."""
+        if not current_user or not target_user:
+            return False
+        if current_user.id == target_user.id:
+            return True
+        if not target_user.is_private:
+            return True
+        # Приватный — только подписчики
+        return Follow.query.filter_by(
+            follower_id=current_user.id,
+            following_id=target_user.id
+        ).first() is not None
+
+    def can_message(target_user):
+        """Может ли текущий юзер писать target_user."""
+        if not current_user or not target_user:
+            return False
+        if current_user.id == target_user.id:
+            return False
+        if not target_user.is_private:
+            return True
+        return Follow.query.filter_by(
+            follower_id=current_user.id,
+            following_id=target_user.id
+        ).first() is not None
+
     return dict(current_user=current_user, has_liked=has_liked, is_following=is_following,
                 has_bookmarked=has_bookmarked, unread_count=unread_count,
                 unread_messages_count=unread_messages_count, has_reposted=has_reposted,
                 my_reaction=my_reaction, count_reaction=count_reaction,
                 is_blocked=is_blocked, blocked_ids=blocked_ids,
                 is_admin=is_admin, has_reported_post=has_reported_post,
-                is_chat_pinned=is_chat_pinned, accent_class=accent_class)
+                is_chat_pinned=is_chat_pinned, accent_class=accent_class,
+                can_view_profile=can_view_profile, can_message=can_message)
 
 
 @app.route('/')
@@ -457,11 +485,27 @@ def profile(username):
         flash('Юзер не найден')
         return redirect(url_for('index'))
 
+    # Проверяем, может ли текущий юзер видеть посты
+    from flask import session as flask_session
+    current_uid = flask_session.get('user_id')
+
+    can_view = True
+    if user.is_private and user.id != current_uid:
+        # Приватный — только подписчики
+        is_follower = Follow.query.filter_by(
+            follower_id=current_uid,
+            following_id=user.id
+        ).first() is not None
+        can_view = is_follower
+
     # Закреплённый пост — всегда сверху, потом остальные по дате
-    posts = Post.query.filter_by(user_id=user.id).order_by(
-        Post.is_pinned.desc(),
-        Post.created_at.desc()
-    ).all()
+    if can_view:
+        posts = Post.query.filter_by(user_id=user.id).order_by(
+            Post.is_pinned.desc(),
+            Post.created_at.desc()
+        ).all()
+    else:
+        posts = []
 
     followers_count = Follow.query.filter_by(following_id=user.id).count()
     following_count = Follow.query.filter_by(follower_id=user.id).count()
@@ -679,6 +723,7 @@ def edit_profile():
         user.city = city or None
         user.website = website or None
         user.accent_color = accent
+        user.is_private = request.form.get('is_private') == 'on'
         db.session.commit()
 
         flash('Профиль обновлён!')
@@ -990,6 +1035,18 @@ def send_message(username):
 
     if other.id == session['user_id']:
         return redirect(url_for('messages'))
+
+    # Проверка приватности
+    can_message_check = True
+    if other.is_private:
+        can_message_check = Follow.query.filter_by(
+            follower_id=session['user_id'],
+            following_id=other.id
+        ).first() is not None
+
+    if not can_message_check:
+        flash(f'@{other.username} в личном пространстве. Подпишись, чтобы писать.')
+        return redirect(url_for('profile', username=other.username))
 
     content = request.form.get('content', '').strip()
     if len(content) > 1000:

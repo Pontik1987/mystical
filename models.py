@@ -98,6 +98,7 @@ class User(db.Model):
     website = db.Column(db.String(200), nullable=True)
     accent_color = db.Column(db.String(20), default='purple')
     stars = db.Column(db.Integer, default=100)
+    is_private = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     posts = db.relationship('Post', backref='author', lazy=True)

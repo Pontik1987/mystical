@@ -37,7 +37,12 @@
                 <div class="profile-avatar">{{ user.username[0]|upper }}</div>
             {% endif %}
 
-            <h2 class="profile-name">{{ user.username }}</h2>
+            <h2 class="profile-name">
+                {{ user.username }}
+                {% if user.is_private %}
+                    <span class="privacy-badge" title="Личное пространство">🔒</span>
+                {% endif %}
+            </h2>
 
             {% if user.bio %}
                 <p class="profile-bio">{{ user.bio }}</p>
@@ -134,7 +139,19 @@
             </div>
         {% endif %}
 
-        {% if not posts %}
+        {% if not can_view_profile(user) %}
+            <div class="profile-locked">
+                <div class="profile-locked-icon">🔒</div>
+                <h3>Профиль закрыт</h3>
+                <p>Это личное пространство. Подпишись, чтобы видеть посты.</p>
+                {% if not is_following(user) %}
+                    <form method="POST" action="{{ url_for('toggle_follow', username=user.username) }}">
+                        <input type="hidden" name="next" value="{{ url_for('profile', username=user.username) }}">
+                        <button type="submit" class="btn-primary">+ Подписаться</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% elif not posts %}
             <p class="empty">У этого юзера пока нет постов.</p>
         {% endif %}
     </main>
