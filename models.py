@@ -159,7 +159,9 @@ class Like(db.Model):
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=True)
+    audio = db.Column(db.String(200), nullable=True)
+    audio_duration = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
@@ -311,7 +313,9 @@ class ClipLike(db.Model):
 
 class ClipComment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=True)
+    audio = db.Column(db.String(200), nullable=True)
+    audio_duration = db.Column(db.Integer, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     clip_id = db.Column(db.Integer, db.ForeignKey('clip.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

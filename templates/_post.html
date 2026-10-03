@@ -142,7 +142,16 @@
                 <a href="{{ url_for('profile', username=comment.author.username) }}" class="comment-author">
                     {{ comment.author.username }}
                 </a>
-                <span class="comment-text">{{ comment.content }}</span>
+                {% if comment.audio %}
+                    <audio controls preload="metadata" class="comment-audio">
+                        <source src="{{ url_for('static', filename='audio/' + comment.audio) }}">
+                    </audio>
+                    {% if comment.audio_duration %}
+                        <span class="comment-audio-duration">{{ comment.audio_duration }}с</span>
+                    {% endif %}
+                {% else %}
+                    <span class="comment-text">{{ comment.content }}</span>
+                {% endif %}
                 <span class="comment-date">{{ comment.created_at.strftime('%d.%m %H:%M') }}</span>
                 {% if comment.user_id == session.user_id %}
                     <form method="POST" action="{{ url_for('delete_comment', comment_id=comment.id) }}" class="comment-delete-form">
@@ -157,6 +166,7 @@
             <input type="hidden" name="next" value="{{ next_url }}">
             <input type="text" name="content" id="comment-{{ post.id }}" placeholder="Написать комментарий..." required>
             <button type="button" class="emoji-trigger" data-target="comment-{{ post.id }}" title="Эмодзи">😀</button>
+            <button type="button" class="voice-record-btn" onclick="toggleVoiceRecording(this, 'post', {{ post.id }})" title="Голосовой комментарий">🎤</button>
             <button type="submit">→</button>
         </form>
     </div>

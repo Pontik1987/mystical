@@ -26,9 +26,12 @@ FILES_FOLDER = os.path.join(basedir, 'static', 'files')
 os.makedirs(FILES_FOLDER, exist_ok=True)
 CLIPS_FOLDER = os.path.join(basedir, 'static', 'clips')
 os.makedirs(CLIPS_FOLDER, exist_ok=True)
+AUDIO_FOLDER = os.path.join(basedir, 'static', 'audio')
+os.makedirs(AUDIO_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
 ALLOWED_FILE_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt', 'zip', 'rar', 'xls', 'xlsx', 'ppt', 'pptx', 'csv'}
+ALLOWED_AUDIO_EXTENSIONS = {'webm', 'mp3', 'ogg', 'wav', 'm4a', 'mp4', 'aac', 'opus'}
 os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
 db.init_app(app)
@@ -46,6 +49,10 @@ def allowed_video(filename):
 
 def allowed_doc(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_FILE_EXTENSIONS
+
+
+def allowed_audio(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_AUDIO_EXTENSIONS
 
 
 @app.template_filter('linkify')
@@ -1735,6 +1742,69 @@ def delete_story(story_id):
 
     flash('История удалена')
     return redirect(url_for('index'))
+
+
+@app.route('/upload_audio/<string:target_type>/<int:target_id>', methods=['POST'])
+def upload_audio(target_type, target_id):
+    if 'user_id' not in session:
+        return {'error': 'unauthorized'}, 401
+
+    audio_file = request.files.get('audio')
+    if not audio_file or not audio_file.filename:
+        return {'error': 'no audio'}, 400
+
+    if not allowed_audio(audio_file.filename):
+        return {'error': 'invalid format'}, 400
+
+    audio_file.seek(0, 2)
+    size = audio_file.tell()
+    audio_file.seek(0)
+
+    if size > 10 * 1024 * 1024:
+        return {'error': 'too large (max 10 MB)'}, 400
+
+    ext = audio_file.filename.rsplit('.', 1)[1].lower()
+    filename = f"audio_{session['user_id']}_{int(datetime.utcnow().timestamp())}.{ext}"
+    audio_file.save(os.path.join(AUDIO_FOLDER, filename))
+
+    duration = request.form.get('duration', 0, type=int)
+
+    try:
+        if target_type == 'post':
+            post = Post.query.get_or_404(target_id)
+            comment = Comment(
+                content=None,
+                audio=filename,
+                audio_duration=duration,
+                user_id=session['user_id'],
+                post_id=post.id
+            )
+            db.session.add(comment)
+
+            if post.user_id != session['user_id']:
+                db.session.add(Notification(
+                    user_id=post.user_id,
+                    actor_id=session['user_id'],
+                    type='comment',
+                    post_id=post.id
+                ))
+        elif target_type == 'clip':
+            clip = Clip.query.get_or_404(target_id)
+            comment = ClipComment(
+                content=None,
+                audio=filename,
+                audio_duration=duration,
+                user_id=session['user_id'],
+                clip_id=clip.id
+            )
+            db.session.add(comment)
+        else:
+            return {'error': 'invalid target'}, 400
+
+        db.session.commit()
+        return {'success': True, 'audio': filename, 'duration': duration}
+    except Exception as e:
+        return {'error': str(e)}, 500
 
 
 @app.route('/clips')
