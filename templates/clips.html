@@ -66,6 +66,13 @@
                             <span class="clip-action-icon">👁</span>
                             <span class="clip-action-count">{{ clip.views }}</span>
                         </div>
+
+                        {% if clip.user_id != session.user_id %}
+                            <a href="{{ url_for('donate', username=clip.author.username) }}" class="clip-action-btn clip-donate" title="Поддержать">
+                                <span class="clip-action-icon">💰</span>
+                                <span class="clip-action-count">Донат</span>
+                            </a>
+                        {% endif %}
                     </div>
 
                     <div class="clip-comments" id="comments-{{ clip.id }}" style="display:none;">

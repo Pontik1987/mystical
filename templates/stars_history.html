@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История звёзд — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('profile', username=session.username) }}" class="user-link">← В профиль</a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="tag-header">
+            <h2 class="tag-title">⭐ Баланс: {{ user.stars or 0 }}</h2>
+            <a href="{{ url_for('stars_topup') }}" class="btn-primary btn-small" style="margin-top:12px;display:inline-block;">+ Пополнить</a>
+        </div>
+
+        <h3 class="section-title">📤 Отправлено ({{ sent|length }})</h3>
+        <div class="donations-list">
+            {% if sent %}
+                {% for d in sent %}
+                    <div class="donation-item">
+                        <div class="donation-icon">→</div>
+                        <div class="donation-body">
+                            <div class="donation-main">
+                                Кому: <a href="{{ url_for('profile', username=d.to_user.username) }}" class="donation-link">@{{ d.to_user.username }}</a>
+                                <strong class="donation-amount">−{{ d.amount }} ⭐</strong>
+                            </div>
+                            {% if d.message %}
+                                <div class="donation-message">{{ d.message }}</div>
+                            {% endif %}
+                            <div class="donation-date">{{ d.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Ты пока никого не поддерживал.</p>
+            {% endif %}
+        </div>
+
+        <h3 class="section-title" style="margin-top:24px;">📥 Получено ({{ received|length }})</h3>
+        <div class="donations-list">
+            {% if received %}
+                {% for d in received %}
+                    <div class="donation-item donation-received">
+                        <div class="donation-icon">←</div>
+                        <div class="donation-body">
+                            <div class="donation-main">
+                                От: <a href="{{ url_for('profile', username=d.from_user.username) }}" class="donation-link">@{{ d.from_user.username }}</a>
+                                <strong class="donation-amount received">+{{ d.amount }} ⭐</strong>
+                            </div>
+                            {% if d.message %}
+                                <div class="donation-message">{{ d.message }}</div>
+                            {% endif %}
+                            <div class="donation-date">{{ d.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty">Ты пока не получал донатов.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

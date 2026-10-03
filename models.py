@@ -97,6 +97,7 @@ class User(db.Model):
     city = db.Column(db.String(100), nullable=True)
     website = db.Column(db.String(200), nullable=True)
     accent_color = db.Column(db.String(20), default='purple')
+    stars = db.Column(db.Integer, default=100)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     posts = db.relationship('Post', backref='author', lazy=True)
@@ -315,3 +316,16 @@ class ClipComment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref='clip_comments')
+
+class Donation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    to_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
+    message = db.Column(db.String(300), nullable=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    from_user = db.relationship('User', foreign_keys=[from_user_id], backref='donations_sent')
+    to_user = db.relationship('User', foreign_keys=[to_user_id], backref='donations_received')
+    post = db.relationship('Post', backref='donations')

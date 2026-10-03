@@ -21,6 +21,7 @@
 
         <div class="user-info">
             <a href="{{ url_for('clips') }}" class="user-link" title="Клипы">🎬</a>
+            <a href="{{ url_for('stars_history') }}" class="user-link" title="Мои звёзды">⭐{% if current_user %} {{ current_user.stars or 0 }}{% endif %}</a>
             <a href="{{ url_for('bookmarks') }}" class="user-link" title="Избранное">🔖</a>
             <a href="{{ url_for('notifications') }}" class="user-link notif-link" title="Уведомления">
                 🔔{% if unread_count() > 0 %}<span class="notif-badge">{{ unread_count() }}</span>{% endif %}

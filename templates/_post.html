@@ -106,6 +106,10 @@
         <button type="button" class="share-btn" data-url="{{ url_for('single_post', post_id=post.id, _external=True) }}" title="Поделиться">🔗</button>
 
         {% if post.user_id != session.user_id %}
+            <a href="{{ url_for('donate', username=post.author.username) }}" class="donate-btn" title="Поддержать автора">💰</a>
+        {% endif %}
+
+        {% if post.user_id != session.user_id %}
             {% if has_reported_post(post) %}
                 <span class="report-btn reported" title="Жалоба отправлена">✅</span>
             {% else %}

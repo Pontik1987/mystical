@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Поддержать {{ to_user.username }} — Mystical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">Mystical</a>
+        <div class="user-info">
+            <a href="{{ url_for('profile', username=to_user.username) }}" class="user-link">← В профиль</a>
+            <a href="{{ url_for('stars_history') }}" class="user-link">⭐ {{ from_user.stars or 0 }}</a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+        </div>
+    </header>
+
+    <main class="feed-container">
+        <div class="edit-card">
+            <h2>💰 Поддержать @{{ to_user.username }}</h2>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for msg in messages %}
+                        <div class="flash">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="donate-balance">
+                <div class="donate-balance-item">
+                    <div class="donate-balance-label">Твой баланс</div>
+                    <div class="donate-balance-value">⭐ {{ from_user.stars or 0 }}</div>
+                    <a href="{{ url_for('stars_topup') }}" class="btn-secondary btn-small" style="margin-top:6px;">+ Пополнить</a>
+                </div>
+                <div class="donate-balance-item">
+                    <div class="donate-balance-label">У {{ to_user.username }}</div>
+                    <div class="donate-balance-value">⭐ {{ to_user.stars or 0 }}</div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('donate', username=to_user.username) }}">
+                <label class="form-label">Сколько звёзд отправить?</label>
+                <div class="donate-presets">
+                    <button type="button" class="donate-preset" onclick="setAmount(5)">⭐ 5</button>
+                    <button type="button" class="donate-preset" onclick="setAmount(10)">⭐ 10</button>
+                    <button type="button" class="donate-preset" onclick="setAmount(25)">⭐ 25</button>
+                    <button type="button" class="donate-preset" onclick="setAmount(50)">⭐ 50</button>
+                    <button type="button" class="donate-preset" onclick="setAmount(100)">⭐ 100</button>
+                </div>
+                <input type="number" name="amount" id="donate-amount" class="form-input" min="1" value="10" required>
+
+                <label class="form-label">Сообщение (необязательно)</label>
+                <textarea name="message" id="donate-message" class="form-textarea" maxlength="300" placeholder="Спасибо за контент!"></textarea>
+                <button type="button" class="emoji-trigger" data-target="donate-message" style="margin-top:6px;">😀 Эмодзи</button>
+
+                <div class="edit-actions">
+                    <button type="submit" class="btn-primary">💰 Отправить</button>
+                    <a href="{{ url_for('profile', username=to_user.username) }}" class="btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+    function setAmount(v) {
+        document.getElementById('donate-amount').value = v;
+    }
+    </script>
+    <script src="{{ url_for('static', filename='emoji.js') }}"></script>
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

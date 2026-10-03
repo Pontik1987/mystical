@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat, GroupChat, GroupMember, GroupMessage, Story, StoryView, Clip, ClipLike, ClipComment
+from models import db, User, Post, Like, Comment, Follow, Bookmark, Notification, Message, Repost, Poll, PollOption, PollVote, Block, Report, PinnedChat, GroupChat, GroupMember, GroupMessage, Story, StoryView, Clip, ClipLike, ClipComment, Donation
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from markupsafe import Markup, escape
@@ -1776,6 +1776,112 @@ def clip_comment(clip_id):
         db.session.commit()
 
     return redirect(url_for('clips'))
+
+
+@app.route('/donate/<username>', methods=['GET', 'POST'])
+def donate(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    to_user = User.query.filter_by(username=username.lower()).first()
+    if not to_user:
+        flash('Юзер не найден')
+        return redirect(url_for('index'))
+
+    if to_user.id == session['user_id']:
+        flash('Нельзя задонатить себе')
+        return redirect(url_for('profile', username=to_user.username))
+
+    from_user = User.query.get(session['user_id'])
+
+    if request.method == 'POST':
+        try:
+            amount = int(request.form.get('amount', 0))
+        except:
+            amount = 0
+
+        message = request.form.get('message', '').strip()[:300]
+        post_id = request.form.get('post_id', type=int)
+
+        if amount < 1:
+            flash('Минимум 1 звезда')
+            return redirect(url_for('donate', username=username))
+
+        if amount > (from_user.stars or 0):
+            flash(f'Недостаточно звёзд. У тебя: {from_user.stars or 0}')
+            return redirect(url_for('donate', username=username))
+
+        # Транзакция
+        from_user.stars -= amount
+        to_user.stars = (to_user.stars or 0) + amount
+
+        donation = Donation(
+            from_user_id=from_user.id,
+            to_user_id=to_user.id,
+            amount=amount,
+            message=message or None,
+            post_id=post_id
+        )
+        db.session.add(donation)
+
+        # Уведомление получателю
+        notif = Notification(
+            user_id=to_user.id,
+            actor_id=from_user.id,
+            type='donation',
+            post_id=post_id
+        )
+        db.session.add(notif)
+
+        db.session.commit()
+
+        flash(f'Ты отправил {amount} ⭐ пользователю {to_user.username}!')
+        return redirect(url_for('profile', username=to_user.username))
+
+    return render_template('donate.html', to_user=to_user, from_user=from_user)
+
+
+@app.route('/stars/topup', methods=['GET', 'POST'])
+def stars_topup():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.get(session['user_id'])
+
+    if request.method == 'POST':
+        try:
+            amount = int(request.form.get('amount', 0))
+        except:
+            amount = 0
+
+        if amount < 10:
+            flash('Минимум 10 звёзд')
+            return redirect(url_for('stars_topup'))
+
+        if amount > 10000:
+            flash('Максимум 10000 за раз')
+            return redirect(url_for('stars_topup'))
+
+        user.stars = (user.stars or 0) + amount
+        db.session.commit()
+
+        flash(f'✅ Баланс пополнен на {amount} ⭐ (тестовый режим)')
+        return redirect(url_for('stars_history'))
+
+    return render_template('stars_topup.html', user=user)
+
+
+@app.route('/stars/history')
+def stars_history():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.get(session['user_id'])
+
+    sent = Donation.query.filter_by(from_user_id=user.id).order_by(Donation.created_at.desc()).all()
+    received = Donation.query.filter_by(to_user_id=user.id).order_by(Donation.created_at.desc()).all()
+
+    return render_template('stars_history.html', user=user, sent=sent, received=received)
 
 
 with app.app_context():
