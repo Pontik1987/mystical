@@ -2095,6 +2095,118 @@ def stars_history():
     return render_template('stars_history.html', user=user, sent=sent, received=received)
 
 
+@app.route('/ai_analyze', methods=['POST'])
+def ai_analyze():
+    """Локальный AI-ассистент: анализ текста без внешних API."""
+    if 'user_id' not in session:
+        return {'error': 'unauthorized'}, 401
+
+    text = request.json.get('text', '').strip() if request.is_json else request.form.get('text', '').strip()
+    action = request.json.get('action', 'analyze') if request.is_json else request.form.get('action', 'analyze')
+
+    if not text:
+        return {'error': 'Текст пустой'}, 400
+
+    if len(text) > 10000:
+        text = text[:10000]
+
+    result = {}
+
+    # Обработка действий
+    if action == 'summarize':
+        sentences = [s.strip() for s in text.replace('!', '.').replace('?', '.').split('.') if s.strip()]
+        summary = '. '.join(sentences[:2])
+        if len(sentences) > 2:
+            summary += '...'
+        result['title'] = '📝 Краткое содержание'
+        result['text'] = summary or text[:200]
+
+    elif action == 'keywords':
+        words = re.findall(r'\b[а-яёa-z]{4,}\b', text.lower())
+        # Стоп-слова
+        stopwords = {'это', 'что', 'как', 'для', 'или', 'все', 'если', 'быть', 'тоже', 'ещё', 'еще',
+                     'только', 'очень', 'меня', 'тебя', 'его', 'она', 'они', 'оно', 'них', 'вас',
+                     'про', 'над', 'под', 'при', 'без', 'через', 'когда', 'который', 'которая',
+                     'можно', 'нужно', 'надо', 'есть', 'было', 'будет', 'были', 'себя', 'вами'}
+        filtered = [w for w in words if w not in stopwords]
+        from collections import Counter
+        top = Counter(filtered).most_common(8)
+        result['title'] = '🔤 Ключевые слова'
+        if top:
+            result['text'] = ' • '.join([f'{w} ({c})' for w, c in top])
+        else:
+            result['text'] = 'Не удалось выделить ключевые слова'
+
+    elif action == 'advice':
+        length = len(text)
+        words = len(text.split())
+        sentences = text.count('.') + text.count('!') + text.count('?')
+        advice = []
+
+        if length < 30:
+            advice.append('💡 Пост очень короткий. Попробуй добавить подробностей.')
+        elif length > 1000:
+            advice.append('📏 Пост длинный. Разбей на абзацы или раздели на несколько.')
+
+        if '?' in text:
+            advice.append('❓ Есть вопрос — отлично! Это провоцирует комментарии.')
+        else:
+            advice.append('💬 Добавь вопрос в конце — получишь больше комментариев.')
+
+        if '#' in text:
+            advice.append('🏷 Хэштеги используются — правильно!')
+        else:
+            advice.append('🏷 Добавь 1-2 хэштега для большей видимости.')
+
+        if '@' in text:
+            advice.append('@ Упоминания используются — это повышает вовлечение.')
+
+        if not any(c in text for c in ['😀','😊','🔥','❤️','👍','😂','🎉','✨']):
+            advice.append('😀 Добавь эмодзи — пост станет живее.')
+
+        result['title'] = '💡 Советы по улучшению'
+        result['text'] = '\n'.join(advice)
+
+    else:  # analyze
+        words = text.split()
+        sentences = [s for s in text.replace('!', '.').replace('?', '.').split('.') if s.strip()]
+        unique_words = len(set(w.lower() for w in words))
+
+        # Тональность (простая)
+        positive = ['хорошо', 'отлично', 'круто', 'класс', 'люблю', 'рад', 'супер', 'здорово', '🔥', '❤️', '😊', '👍']
+        negative = ['плохо', 'ужасно', 'ненавижу', 'грустно', 'проблема', 'беда', '😢', '😡', '👎']
+
+        pos_count = sum(1 for w in words if w.lower() in positive or any(p in w for p in positive))
+        neg_count = sum(1 for w in words if w.lower() in negative or any(n in w for n in negative))
+
+        if pos_count > neg_count:
+            tone = '😊 позитивный'
+        elif neg_count > pos_count:
+            tone = '😔 негативный'
+        else:
+            tone = '😐 нейтральный'
+
+        # Читаемость
+        avg_word_len = sum(len(w) for w in words) / max(len(words), 1)
+        if avg_word_len < 5:
+            readability = 'Легко читается'
+        elif avg_word_len < 7:
+            readability = 'Средняя сложность'
+        else:
+            readability = 'Сложный текст'
+
+        result['title'] = '📊 Анализ поста'
+        result['text'] = (
+            f"📏 Длина: {len(words)} слов, {len(text)} символов\n"
+            f"📝 Предложений: {len(sentences)}\n"
+            f"🔤 Уникальных слов: {unique_words}\n"
+            f"🎭 Тональность: {tone}\n"
+            f"📖 Читаемость: {readability}"
+        )
+
+    return {'success': True, 'title': result.get('title'), 'text': result.get('text')}
+
+
 with app.app_context():
     db.create_all()
 

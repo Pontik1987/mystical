@@ -1,5 +1,5 @@
 {# Партиал одного поста. Ожидает: post, next_url #}
-<div class="post">
+<div class="post" data-id="{{ post.id }}">
     <div class="post-header">
         <a href="{{ url_for('profile', username=post.author.username) }}" class="post-author">
             {{ post.author.username }}
@@ -116,6 +116,8 @@
         <span class="repost-count">🔄 {{ post.post_reposts|length }}</span>
 
         <button type="button" class="share-btn" data-url="{{ url_for('single_post', post_id=post.id, _external=True) }}" title="Поделиться">🔗</button>
+
+        <button type="button" class="ai-assistant-btn" onclick="openAIAssistant({{ post.id }})" title="AI-ассистент">🤖</button>
 
         {% if post.user_id != session.user_id %}
             <a href="{{ url_for('donate', username=post.author.username) }}" class="donate-btn" title="Поддержать автора">💰</a>
