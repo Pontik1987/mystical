@@ -781,6 +781,79 @@ def change_password():
 
 
 
+@app.route('/super_like/<int:post_id>', methods=['POST'])
+def super_like(post_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    post = Post.query.get_or_404(post_id)
+
+    # Нельзя на свой пост
+    if post.user_id == session['user_id']:
+        flash('Нельзя супер-реакцию на свой пост')
+        return redirect(request.form.get('next') or url_for('index'))
+
+    user = User.query.get(session['user_id'])
+    if (user.stars or 0) < 1:
+        flash('Недостаточно ⭐ для супер-реакции')
+        return redirect(request.form.get('next') or url_for('index'))
+
+    reaction = request.form.get('reaction', 'super_star')
+
+    existing = Like.query.filter_by(user_id=session['user_id'], post_id=post.id).first()
+
+    if existing:
+        if existing.is_super and existing.reaction == reaction:
+            # Повторный клик — отменяем супер
+            user.stars = (user.stars or 0) + 1  # возвращаем звезду
+            author = User.query.get(post.user_id)
+            if author:
+                author.stars = max(0, (author.stars or 0) - 1)
+            db.session.delete(existing)
+            db.session.commit()
+            flash('Супер-реакция отменена, ⭐ возвращена')
+            return redirect(request.form.get('next') or url_for('index'))
+        else:
+            # Меняем на супер (если была обычная — она бесплатная)
+            if not existing.is_super:
+                user.stars = (user.stars or 0) - 1
+                author = User.query.get(post.user_id)
+                if author:
+                    author.stars = (author.stars or 0) + 1
+
+            existing.reaction = reaction
+            existing.is_super = True
+            db.session.commit()
+            flash(f'🔥 Супер-реакция! −1 ⭐')
+            return redirect(request.form.get('next') or url_for('index'))
+    else:
+        # Новая супер-реакция
+        user.stars = (user.stars or 0) - 1
+        author = User.query.get(post.user_id)
+        if author:
+            author.stars = (author.stars or 0) + 1
+
+        db.session.add(Like(
+            user_id=session['user_id'],
+            post_id=post.id,
+            reaction=reaction,
+            is_super=True
+        ))
+
+        # Уведомление
+        notif = Notification(
+            user_id=post.user_id,
+            actor_id=session['user_id'],
+            type='super_like',
+            post_id=post.id
+        )
+        db.session.add(notif)
+        db.session.commit()
+
+        flash(f'🔥 Супер-реакция отправлена! −1 ⭐')
+        return redirect(request.form.get('next') or url_for('index'))
+
+
 @app.route('/like/<int:post_id>', methods=['POST'])
 def toggle_like(post_id):
     if 'user_id' not in session:

@@ -3563,3 +3563,66 @@ body.dark .font-btn input:checked + .font-preview {
     border-color: #a78bfa;
     color: white;
 }
+
+/* --- Super Reactions --- */
+.super-reaction-form { display: inline; }
+
+.super-reaction-btn {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border: 2px solid #f59e0b;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 20px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 2px;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.4);
+}
+
+.super-reaction-btn:hover {
+    transform: scale(1.15) rotate(-5deg);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
+}
+
+.super-reaction-btn.active {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #dc2626;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.7);
+    animation: pulse-super 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-super {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+/* Всплывающая анимация при клике */
+.super-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 120px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: super-pop 1s ease-out forwards;
+    filter: drop-shadow(0 0 30px gold);
+}
+
+@keyframes super-pop {
+    0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+    30% { transform: translate(-50%, -50%) scale(1.5) rotate(20deg); opacity: 1; }
+    70% { transform: translate(-50%, -50%) scale(1.2) rotate(-10deg); opacity: 1; }
+    100% { transform: translate(-50%, -150%) scale(0.8) rotate(0deg); opacity: 0; }
+}
+
+/* Супер-реакции в тёмной теме */
+body.dark .super-reaction-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #d97706;
+}

@@ -84,6 +84,18 @@
                 </form>
             {% endfor %}
         </div>
+        {% if post.user_id != session.user_id %}
+            <form method="POST" action="{{ url_for('super_like', post_id=post.id) }}" class="super-reaction-form">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <input type="hidden" name="reaction" value="super_star">
+                <button type="submit" class="super-reaction-btn {{ 'active' if my_reaction(post) == 'super_star' else '' }}" title="Супер-звезда (1 ⭐)">🌟</button>
+            </form>
+            <form method="POST" action="{{ url_for('super_like', post_id=post.id) }}" class="super-reaction-form">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <input type="hidden" name="reaction" value="super_fire">
+                <button type="submit" class="super-reaction-btn {{ 'active' if my_reaction(post) == 'super_fire' else '' }}" title="Супер-огонь (1 ⭐)">🔥</button>
+            </form>
+        {% endif %}
         <span class="comment-count">💬 {{ post.comments|length }}</span>
         <span class="view-count">👁 {{ post.views or 0 }}</span>
 

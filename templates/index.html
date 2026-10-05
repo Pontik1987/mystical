@@ -183,6 +183,26 @@ if (fileInput) {
 }
 </script>
     <script src="{{ url_for('static', filename='emoji.js') }}"></script>
+    <script>
+// Анимация супер-реакции
+document.addEventListener('submit', function(e) {
+    var form = e.target.closest('.super-reaction-form');
+    if (!form) return;
+
+    var btn = form.querySelector('.super-reaction-btn');
+    var emoji = btn.textContent.trim();
+
+    // Показываем всплывашку
+    var popup = document.createElement('div');
+    popup.className = 'super-popup';
+    popup.textContent = emoji;
+    document.body.appendChild(popup);
+
+    setTimeout(function() {
+        if (popup.parentNode) popup.parentNode.removeChild(popup);
+    }, 1200);
+});
+</script>
     <script src="{{ url_for('static', filename='pwa.js') }}"></script>
 </body>
 </html>
