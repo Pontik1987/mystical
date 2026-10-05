@@ -39,6 +39,30 @@
                 <textarea name="content" id="edit-post-content" class="form-textarea" required autofocus>{{ post.content }}</textarea>
                 <button type="button" class="emoji-trigger" data-target="edit-post-content" title="Эмодзи" style="margin-top:6px;">😀 Эмодзи</button>
 
+                <div class="font-selector" style="margin-top:12px;">
+                    <span class="font-selector-label">Шрифт:</span>
+                    <label class="font-btn">
+                        <input type="radio" name="font_style" value="sans" {% if post.font_style == 'sans' or not post.font_style %}checked{% endif %}>
+                        <span class="font-preview font-sans">Aa</span>
+                    </label>
+                    <label class="font-btn">
+                        <input type="radio" name="font_style" value="serif" {% if post.font_style == 'serif' %}checked{% endif %}>
+                        <span class="font-preview font-serif">Aa</span>
+                    </label>
+                    <label class="font-btn">
+                        <input type="radio" name="font_style" value="mono" {% if post.font_style == 'mono' %}checked{% endif %}>
+                        <span class="font-preview font-mono">Aa</span>
+                    </label>
+                    <label class="font-btn">
+                        <input type="radio" name="font_style" value="cursive" {% if post.font_style == 'cursive' %}checked{% endif %}>
+                        <span class="font-preview font-cursive">Aa</span>
+                    </label>
+                    <label class="font-btn">
+                        <input type="radio" name="font_style" value="fantasy" {% if post.font_style == 'fantasy' %}checked{% endif %}>
+                        <span class="font-preview font-fantasy">Aa</span>
+                    </label>
+                </div>
+
                 <div class="edit-actions">
                     <button type="submit" class="btn-primary">Сохранить</button>
                     <a href="{{ url_for('index') }}" class="btn-secondary">Отмена</a>

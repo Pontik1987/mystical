@@ -9,7 +9,7 @@
             {{ post.created_at.strftime('%d.%m.%Y %H:%M') }}
         </span>
     </div>
-    <div class="post-content">{{ post.content|linkify }}</div>
+    <div class="post-content font-{{ post.font_style or 'sans' }}">{{ post.content|linkify }}</div>
 
     {% if post.video %}
         <div class="post-video">

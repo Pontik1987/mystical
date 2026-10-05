@@ -136,6 +136,7 @@ class Post(db.Model):
     file = db.Column(db.String(200), nullable=True)
     file_name = db.Column(db.String(200), nullable=True)
     file_size = db.Column(db.Integer, nullable=True)
+    font_style = db.Column(db.String(20), default='sans')
     views = db.Column(db.Integer, default=0)
     is_pinned = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

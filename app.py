@@ -411,7 +411,12 @@ def create_post():
         return redirect(url_for('index'))
 
     if content:
-        post = Post(content=content, user_id=session['user_id'])
+        font_style = request.form.get('font_style', 'sans')
+        allowed_fonts = ['sans', 'serif', 'mono', 'cursive', 'fantasy']
+        if font_style not in allowed_fonts:
+            font_style = 'sans'
+
+        post = Post(content=content, user_id=session['user_id'], font_style=font_style)
 
         # Обработка видео
         video_file = request.files.get('video')
@@ -1385,6 +1390,12 @@ def edit_post(post_id):
         content = request.form.get('content', '').strip()
         if content:
             post.content = content
+
+            font_style = request.form.get('font_style', 'sans')
+            allowed_fonts = ['sans', 'serif', 'mono', 'cursive', 'fantasy']
+            if font_style in allowed_fonts:
+                post.font_style = font_style
+
             db.session.commit()
             flash('Пост обновлён')
         next_url = request.form.get('next') or url_for('index')
