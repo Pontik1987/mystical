@@ -38,6 +38,32 @@
 
 ---
 
+### 🤖 AI-ассистент
+![AI-ассистент](screenshots/11-ai-assistant.png)
+
+### 🌟 Super Reactions
+![Super Reactions](screenshots/12-super-reactions.png)
+
+### 🎤 Голосовые комментарии
+![Голосовые](screenshots/13-voice-comment.png)
+
+### 🎬 Клипы
+![Клипы](screenshots/14-clips.png)
+
+### 💰 Донаты
+![Донаты](screenshots/15-donations.png)
+
+### 🔒 Личное пространство
+![Приватность](screenshots/16-privacy.png)
+
+### 🎨 Кастомные шрифты
+![Шрифты](screenshots/17-fonts.png)
+
+### 📊 Графики активности
+![Графики](screenshots/18-stats-charts.png)
+
+---
+
 ## ✨ Возможности (57+ фич)
 
 ### 👤 Пользователи (11)
