@@ -3796,3 +3796,32 @@ body.dark .ai-result {
     border-color: #4c1d95;
 }
 body.dark .ai-result-text { color: #e4e6eb; }
+
+/* --- Bookmarks --- */
+.bookmark-form { display: inline; }
+
+.bookmark-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 20px;
+    transition: background 0.2s, opacity 0.2s;
+    opacity: 0.5;
+}
+
+.bookmark-btn:hover {
+    background: #fef3c7;
+    opacity: 1;
+}
+
+.bookmark-btn.active {
+    opacity: 1;
+    background: #fef3c7;
+}
+
+body.dark .bookmark-btn:hover,
+body.dark .bookmark-btn.active {
+    background: rgba(254, 243, 199, 0.15);
+}
